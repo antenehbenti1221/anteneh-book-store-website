@@ -1,6 +1,6 @@
 # Anteneh Book Store — Manual Free Website
 
-Hand-coded static storefront using HTML, CSS and vanilla JavaScript.
+A hand-coded static storefront using HTML, CSS and vanilla JavaScript.
 
 ## Configure
 Edit `config.js` and set your Supabase publishable/anon key and public Telegram username. Never put the Supabase service_role key in a browser website.
