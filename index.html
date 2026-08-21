@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Anteneh Book Store — ebooks and audiobooks.">
+<title>Anteneh Book Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header><div class="container nav"><a class="brand" href="#home"><b>A</b> Anteneh Book Store</a>
+<nav><a href="#home">Home</a><a href="#books">Books</a><a href="#about">About</a><a href="#contact">Contact</a></nav>
+<button class="menu">☰</button></div></header>
+<main>
+<section id="home" class="hero"><div class="container hero-grid"><div>
+<p class="eyebrow">READ • LISTEN • GROW</p><h1>Books worth <em>keeping.</em></h1>
+<p class="lead">Discover ebooks and audiobooks from Anteneh Book Store and access purchases securely through Telegram.</p>
+<a class="btn primary" href="#books">Browse books</a> <a class="btn" href="#about">Learn more</a>
+</div><div class="hero-card"><span>📚 Curated collection</span><div class="books">📕 📗 📘</div><h2>Your next chapter starts here.</h2><p>Buy once. Read or listen from your private Telegram library.</p></div></div></section>
+<section id="books" class="section"><div class="container"><div class="heading"><div><p class="eyebrow">THE COLLECTION</p><h2>Available Books</h2></div>
+<div class="tools"><input id="search" placeholder="Search books…"><select id="filter"><option value="all">All types</option><option>Ebook</option><option>Audiobook</option></select></div></div>
+<p id="status">Loading books…</p><div id="grid" class="grid"></div></div></section>
+<section id="about" class="section soft"><div class="container two"><div><p class="eyebrow">ABOUT</p><h2>A simple place for meaningful books.</h2></div><div><p>Anteneh Book Store brings ebooks and audiobooks into one easy collection. After purchase, access is delivered through your private Telegram library.</p><p>The website is the storefront; your existing Supabase and Telegram system remains the delivery layer.</p></div></div></section>
+<section id="contact" class="section"><div class="container contact"><div><p class="eyebrow">CONTACT</p><h2>Need help choosing a book?</h2><p>Contact Anteneh Book Store on Telegram.</p></div><a id="telegram" class="btn primary" target="_blank" rel="noopener">Contact on Telegram</a></div></section>
+</main><footer><div class="container foot">© <span id="year"></span> Anteneh Book Store <span>Built manually with HTML, CSS & JavaScript.</span></div></footer>
+<div id="modal" class="modal"><div class="backdrop"></div><div class="modal-card"><button id="close">×</button><div id="details"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js"></script>
+</body></html>
