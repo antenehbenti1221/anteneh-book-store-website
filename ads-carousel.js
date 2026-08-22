@@ -1,0 +1,13 @@
+(function(){
+const grid=document.getElementById('adGrid');
+if(!grid)return;
+let timer=null,pausedUntil=0,signature='',index=0,track,items,dots;
+function visibleCount(){return window.innerWidth<=700?2:3}
+function setup(){const cards=[...grid.querySelectorAll('.promo-card')];if(cards.length<2){grid.classList.remove('ads-carousel');return}const sig=cards.map(x=>x.dataset.promoId||x.querySelector('h3')?.textContent||'').join('|');if(sig===signature&&track)return;signature=sig;index=0;grid.classList.add('ads-carousel');grid.innerHTML='';track=document.createElement('div');track.className='ads-track';cards.forEach(c=>track.appendChild(c));grid.appendChild(track);const controls=document.createElement('div');controls.className='ads-controls';const prev=document.createElement('button');prev.className='ads-arrow';prev.type='button';prev.setAttribute('aria-label','Previous promotion');prev.textContent='‹';const next=document.createElement('button');next.className='ads-arrow';next.type='button';next.setAttribute('aria-label','Next promotion');next.textContent='›';dots=document.createElement('div');dots.className='ads-dots';controls.append(prev,dots,next);grid.appendChild(controls);items=[...track.children];items.forEach((_,i)=>{const d=document.createElement('button');d.type='button';d.className='ads-dot';d.setAttribute('aria-label',`Promotion ${i+1}`);d.onclick=()=>{index=i;pause();go()};dots.appendChild(d)});prev.onclick=()=>{index=(index-1+items.length)%items.length;pause();go()};next.onclick=()=>{index=(index+1)%items.length;pause();go()};let startX=0;grid.ontouchstart=e=>{startX=e.changedTouches[0].clientX;pause()};grid.ontouchend=e=>{const dx=e.changedTouches[0].clientX-startX;if(Math.abs(dx)>35){index=(index+(dx<0?1:-1)+items.length)%items.length;go()}};go()}
+function go(){if(!track||!items?.length)return;const count=Math.min(visibleCount(),items.length);const gap=16;const step=(100+(gap*count/Math.max(1,track.clientWidth))*100)/count;track.style.transform=`translateX(calc(-${index*100/count}% - ${index*gap/count}px))`;items.forEach((x,i)=>x.classList.toggle('ads-active',i>=index&&i<index+count));[...dots?.children||[]].forEach((d,i)=>d.classList.toggle('active',i===index));}
+function pause(){pausedUntil=Date.now()+7000;clearTimeout(timer);timer=setTimeout(auto,7000)}
+function auto(){if(Date.now()<pausedUntil)return;index=(index+1)%items.length;go();timer=setTimeout(auto,5000)}
+new MutationObserver(()=>{track=null;setup()}).observe(grid,{childList:true});
+window.addEventListener('resize',()=>{if(track)go()});
+setTimeout(setup,300);
+})();
