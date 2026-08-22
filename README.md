@@ -22,3 +22,6 @@ A hand-coded static Ethiopian digital bookstore using HTML, CSS and vanilla Java
 
 ## Deployment
 This is a static site and can be deployed for free with GitHub Pages or Cloudflare Pages. Protected digital files are delivered through the Supabase backend rather than exposed publicly.
+
+## Deployment trigger
+The site deployment workflow is configured for the `main` branch. This commit intentionally retriggers the deployment after the final UI/UX pass.
