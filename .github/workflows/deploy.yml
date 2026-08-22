@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Anteneh Book Store
 
 on:
   push:
@@ -22,7 +22,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload site
