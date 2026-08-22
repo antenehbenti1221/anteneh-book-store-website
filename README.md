@@ -1,15 +1,24 @@
-# Anteneh Book Store — Manual Free Website
+# Anteneh Book Store 🇪🇹
 
-A hand-coded static storefront using HTML, CSS and vanilla JavaScript.
+A hand-coded static Ethiopian digital bookstore using HTML, CSS and vanilla JavaScript.
 
-## Configure
-Edit `config.js` and set your Supabase publishable/anon key and public Telegram username. Never put the Supabase service_role key in a browser website.
+## Final experience
+- English is the default language.
+- Optional Amharic and Afaan Oromoo translations.
+- `Anteneh Book Store` remains the brand name in every language.
+- Featured promotions appear at the top.
+- Free Books have their own section.
+- Lalibela, Fasil Ghebbi, Axum and the Grand Ethiopian Renaissance Dam are used as heritage background imagery.
+- Customers sign in, choose a product, upload one receipt screenshot, and wait for manual payment approval.
+- Approved ebook/audiobook purchases appear automatically under My Purchases.
+- Admin tools are protected behind the administrator account at `/admin.html`.
 
-## Supabase
-The site reads intended public catalogue fields from `products`. RLS must expose only the catalogue data meant for public viewing. Keep Telegram session/admin tables private.
+## Payment
+- CBE Bank: 1000034618821
+- CBE Birr: 0926198917
+- Telebirr: 0926198917
+- Account name: Anteneh Benti Negawo
+- Customers may pay from any bank.
 
-## Free deployment
-Cloudflare Pages can deploy this static site for free. Connect this GitHub repository to Cloudflare Pages; for plain HTML, no build framework is required.
-
-## Architecture
-Website = storefront. Supabase = catalogue/backend. Telegram = purchase approval and protected delivery. Do not host protected PDFs publicly from this site.
+## Deployment
+This is a static site and can be deployed for free with GitHub Pages or Cloudflare Pages. Protected digital files are delivered through the Supabase backend rather than exposed publicly.
