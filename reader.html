@@ -17,15 +17,18 @@
 <script>
 'use strict';
 const loading=document.getElementById('loading'),pages=document.getElementById('pages'),info=document.getElementById('pageInfo'),prev=document.getElementById('prev'),next=document.getElementById('next');
-const params=new URLSearchParams(location.hash.slice(1));const url=params.get('url');
+const params=new URLSearchParams(location.hash.slice(1));const token=params.get('token');const kind=params.get('kind')||'ebook';
+const SUPABASE_URL='https://eyhrzdmdnpuimzfqyith.supabase.co';
 function fail(message){loading.hidden=true;pages.innerHTML='<div class="message">'+message+'</div>'}
-function loadPdfJs(){return new Promise((resolve,reject)=>{if(window.pdfjsLib)return resolve();const sources=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js'];let i=0;const add=()=>{if(i>=sources.length)return reject(new Error('Reader library could not load'));const s=document.createElement('script');s.src=sources[i++];s.onload=()=>window.pdfjsLib?resolve():add();s.onerror=add;document.head.appendChild(s)};add()})}
+function loadPdfJs(){return new Promise((resolve,reject)=>{if(window.pdfjsLib)return resolve();const sources=['https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js','https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js'];let i=0;const add=()=>{if(i>=sources.length)return reject(new Error('Reader library could not load'));const s=document.createElement('script');s.src=sources[i++];s.onload=()=>window.pdfjsLib?resolve():add();s.onerror=add;document.head.appendChild(s)};add()})}
+async function fetchSecurePdf(){const r=await fetch(SUPABASE_URL+'/functions/v1/deliver-purchase',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({access_token:token,kind:'ebook',mode:'pdf'}),cache:'no-store'});if(!r.ok){let msg='Secure ebook delivery failed';try{const j=await r.json();msg=j.error||msg}catch{}throw new Error(msg)}return new Uint8Array(await r.arrayBuffer())}
 async function openReader(){
- if(!url){fail('This ebook link is missing or expired.');return}
+ if(!token||kind!=='ebook'){fail('This ebook link is missing or expired. Please return to My Purchases and open it again.');return}
  try{
   await loadPdfJs();
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const pdf=await pdfjsLib.getDocument({url,disableAutoFetch:false,disableStream:false}).promise;
+  const bytes=await fetchSecurePdf();
+  const pdf=await pdfjsLib.getDocument({data:bytes,disableAutoFetch:false,disableStream:false}).promise;
   pages.innerHTML='';info.textContent='1 / '+pdf.numPages;
   for(let n=1;n<=pdf.numPages;n++){
    const p=await pdf.getPage(n),base=p.getViewport({scale:1}),maxWidth=Math.min(window.innerWidth-16,900),scale=Math.max(1,Math.min(2.2,maxWidth/base.width)),viewport=p.getViewport({scale});
@@ -33,7 +36,7 @@ async function openReader(){
    await p.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise;
   }
   loading.hidden=true;let current=1;const show=n=>{current=Math.max(1,Math.min(pdf.numPages,n));info.textContent=current+' / '+pdf.numPages;pages.children[current-1]?.scrollIntoView({behavior:'smooth',block:'start'})};prev.onclick=()=>show(current-1);next.onclick=()=>show(current+1);
- }catch(e){console.error('Secure reader error',e);fail('Could not open this ebook. Please return to My Purchases and tap Open ebook again.');}
+ }catch(e){console.error('Secure reader error',e);fail('Could not open this ebook. Please return to My Purchases and tap Open ebook again.')}
 }
 openReader();
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['s','p','u'].includes(e.key.toLowerCase()))e.preventDefault()});
