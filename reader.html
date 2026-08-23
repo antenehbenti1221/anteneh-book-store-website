@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#168a4b">
+<title>Read Ebook — Anteneh Book Store</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#171717;color:#fff;font-family:Arial,sans-serif}body{display:flex;flex-direction:column;user-select:none;-webkit-user-select:none}.reader-bar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:#168a4b;box-shadow:0 2px 10px #0005}.reader-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.reader-controls{display:flex;align-items:center;gap:7px}.reader-controls button{border:0;border-radius:9px;padding:8px 11px;background:#fff;color:#168a4b;font-weight:700}.reader-controls span{min-width:72px;text-align:center;font-size:14px}.pages{display:flex;flex-direction:column;align-items:center;gap:14px;padding:18px 8px 30px}.page-wrap{background:#fff;box-shadow:0 2px 12px #0008;max-width:100%;overflow:hidden}.page-wrap canvas{display:block;max-width:100%;height:auto}.message{padding:40px 20px;text-align:center}.hint{opacity:.7;font-size:12px;text-align:center;padding:0 15px 18px}.loading{position:fixed;inset:0;display:grid;place-items:center;background:#171717;z-index:10}.loading[hidden]{display:none}@media(min-width:700px){.pages{padding:24px}.page-wrap{max-width:900px}.reader-bar{padding:12px 24px}}
+</style>
+</head>
+<body oncontextmenu="return false">
+<div class="reader-bar"><div class="reader-title">📖 Read only</div><div class="reader-controls"><button id="prev" type="button">‹</button><span id="pageInfo">1 / 1</span><button id="next" type="button">›</button></div></div>
+<div id="pages" class="pages"><div class="message">Preparing your ebook…</div></div>
+<div class="hint">Read-only viewer. Download, print and editing controls are intentionally not provided.</div>
+<div id="loading" class="loading">Opening your secure ebook…</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+const loading=document.getElementById('loading'),pages=document.getElementById('pages'),info=document.getElementById('pageInfo'),prev=document.getElementById('prev'),next=document.getElementById('next');
+const params=new URLSearchParams(location.hash.slice(1));const url=params.get('url');
+if(!url){loading.hidden=true;pages.innerHTML='<div class="message">This ebook link is missing or expired.</div>'}else{
+ pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+ pdfjsLib.getDocument({url:url,disableAutoFetch:false,disableStream:false}).promise.then(async pdf=>{
+  pages.innerHTML='';info.textContent='1 / '+pdf.numPages;
+  for(let n=1;n<=pdf.numPages;n++){const p=await pdf.getPage(n);const base=p.getViewport({scale:1});const maxWidth=Math.min(window.innerWidth-16,900);const scale=Math.max(1,Math.min(2.2,maxWidth/base.width));const viewport=p.getViewport({scale});const wrap=document.createElement('div');wrap.className='page-wrap';const canvas=document.createElement('canvas');canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);wrap.appendChild(canvas);pages.appendChild(wrap);await p.render({canvasContext:canvas.getContext('2d',{alpha:false}),viewport}).promise}
+  loading.hidden=true;
+  let current=1;const show=n=>{current=Math.max(1,Math.min(pdf.numPages,n));info.textContent=current+' / '+pdf.numPages;const el=pages.children[current-1];el?.scrollIntoView({behavior:'smooth',block:'start'});};prev.onclick=()=>show(current-1);next.onclick=()=>show(current+1);
+ }).catch(e=>{console.error(e);loading.hidden=true;pages.innerHTML='<div class="message">Could not open this ebook. The secure link may have expired. Please return to My Purchases and open it again.</div>'});
+}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&['s','p','u'].includes(e.key.toLowerCase()))e.preventDefault()});
+</script>
+</body>
+</html>
