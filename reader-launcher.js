@@ -11,7 +11,9 @@
       const j=await r.json();
       if(!r.ok)throw new Error(j.error||'Delivery unavailable');
       if(kind==='ebook'){
-        const readerUrl=`reader.html#url=${encodeURIComponent(j.url)}`;
+        // The read-only viewer needs the purchase access token so it can request the PDF
+        // directly from the secure delivery function. Do not pass the signed Storage URL.
+        const readerUrl=`reader.html#token=${encodeURIComponent(token)}&kind=ebook`;
         out.innerHTML=`<div class="order-card"><p class="eyebrow">✅ ACCESS READY</p><h3>📖 Ebook</h3><span>Your read-only secure access is ready.</span><a class="btn primary" href="${esc(readerUrl)}" target="_blank" rel="noopener">Open ebook</a><button class="btn" id="backPurchases">Back to My Purchases</button></div>`;
       }else{
         out.innerHTML=`<div class="order-card"><p class="eyebrow">✅ ACCESS READY</p><h3>🎧 Audiobook</h3><span>Your secure access is ready.</span><a class="btn primary" href="${esc(j.url)}" target="_blank" rel="noopener">Open audiobook</a><button class="btn" id="backPurchases">Back to My Purchases</button></div>`;
