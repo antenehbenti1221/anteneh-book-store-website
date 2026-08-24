@@ -52,22 +52,33 @@
   setTimeout(()=>window.loadOrders(),0);
 })();
 
-/* Catalogue cards remain title-first; the publishing access controls are defined once in admin.html to avoid duplicate UI. */
+/* Catalogue: compact title-first cards, separated into Paid Books and Free Books. */
 (() => {
   const style = document.createElement('style');
   style.textContent = `
-    #booksAdmin .catalogue-item-title{display:block;width:100%;padding:18px 20px;border:0;background:transparent;text-align:left;font:inherit;font-weight:700;font-size:1.08rem;cursor:pointer;color:inherit}
-    #booksAdmin .catalogue-item-title:after{content:'⌄';float:right;opacity:.55;transition:transform .18s ease}
+    #booksAdmin .catalogue-sections{display:grid;gap:18px;margin-top:14px}
+    #booksAdmin .catalogue-section{margin:0}
+    #booksAdmin .catalogue-section-heading{display:flex;align-items:center;gap:7px;margin:0 0 7px;padding:0 2px;font-size:1rem}
+    #booksAdmin .catalogue-section-heading .catalogue-icon{font-size:15px;line-height:1}
+    #booksAdmin .catalogue-section-heading h4{margin:0;font-size:1rem}
+    #booksAdmin .catalogue-section-count{font-size:.78rem;font-weight:600;opacity:.62}
+    #booksAdmin .catalogue-section-list{display:grid;gap:6px}
+    #booksAdmin .catalogue-item-title{display:block;width:100%;padding:12px 14px;border:0;background:transparent;text-align:left;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;color:inherit}
+    #booksAdmin .catalogue-item-title:after{content:'⌄';float:right;opacity:.5;transition:transform .18s ease}
     #booksAdmin .catalogue-item-title[aria-expanded="true"]:after{transform:rotate(180deg)}
-    #booksAdmin .catalogue-item{overflow:hidden}
-    #booksAdmin .catalogue-item-details{display:none;padding:0 20px 18px}
+    #booksAdmin .catalogue-item{overflow:hidden;margin:0!important}
+    #booksAdmin .catalogue-item-details{display:none;padding:0 14px 12px}
     #booksAdmin .catalogue-item.open .catalogue-item-details{display:block}
+    #booksAdmin .catalogue-item-details .btn{padding:8px 12px;font-size:.9rem}
   `;
   document.head.appendChild(style);
 
+  let grouping = false;
+
   function polishCatalogue() {
     const host = document.getElementById('booksAdmin');
-    if (!host) return;
+    if (!host || grouping) return;
+
     host.querySelectorAll(':scope > .pay-card').forEach(card => {
       if (card.dataset.cataloguePolished === '1') return;
       const title = card.querySelector(':scope > b');
@@ -97,10 +108,44 @@
         titleButton.setAttribute('aria-expanded', String(!open));
       });
     });
+
+    groupCatalogue(host);
+  }
+
+  function groupCatalogue(host) {
+    const cards = [...host.querySelectorAll(':scope > .catalogue-item')];
+    if (!cards.length || host.querySelector(':scope > .catalogue-sections')) return;
+
+    const paid = cards.filter(card => !/\bFREE\b/i.test(card.textContent));
+    const free = cards.filter(card => /\bFREE\b/i.test(card.textContent));
+    grouping = true;
+
+    const sections = document.createElement('div');
+    sections.className = 'catalogue-sections';
+
+    const makeSection = (label, icon, list) => {
+      if (!list.length) return;
+      const section = document.createElement('section');
+      section.className = 'catalogue-section';
+      section.innerHTML = `<div class="catalogue-section-heading"><span class="catalogue-icon">${icon}</span><h4>${label}</h4><span class="catalogue-section-count">${list.length}</span></div>`;
+      const listHost = document.createElement('div');
+      listHost.className = 'catalogue-section-list';
+      list.forEach(card => listHost.appendChild(card));
+      section.appendChild(listHost);
+      sections.appendChild(section);
+    };
+
+    makeSection('Paid Books', '💳', paid);
+    makeSection('Free Books', '🆓', free);
+    host.appendChild(sections);
+    grouping = false;
   }
 
   const boot = () => polishCatalogue();
   setTimeout(boot, 0);
-  const catalogueObserver = new MutationObserver(polishCatalogue);
-  setTimeout(() => { const host=document.getElementById('booksAdmin'); if(host) catalogueObserver.observe(host,{childList:true,subtree:true}); }, 0);
+  const catalogueObserver = new MutationObserver(() => setTimeout(polishCatalogue, 0));
+  setTimeout(() => {
+    const host = document.getElementById('booksAdmin');
+    if (host) catalogueObserver.observe(host, {childList:true, subtree:true});
+  }, 0);
 })();
