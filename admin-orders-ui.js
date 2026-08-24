@@ -17,3 +17,92 @@
   document.addEventListener('click',e=>{const h=$('ordersAdmin');if(!h||!h.contains(e.target))return;const v=e.target.closest('[data-v]');if(v){const next=v.dataset.v;view=view===next?null:next;render();return}const r=e.target.closest('[data-r]');if(r){receipt(r.dataset.r);return}const a=e.target.closest('[data-a]');if(!a)return;const c=a.closest('[data-id]');if(!c)return;const id=c.dataset.id;if(a.dataset.a==='hide'){if(hidden.has(id)){hidden.delete(id);view='history'}else{hidden.add(id);view='hidden'}save();render();return}if(a.dataset.a==='approve')setStatus(id,'approved',c);if(a.dataset.a==='reject')setStatus(id,'rejected',c)});
   window.loadOrders=load;window.orderView=v=>{view=view===v?null:v;render()};window.toggleHidden=id=>{id=String(id);if(hidden.has(id)){hidden.delete(id);view='history'}else{hidden.add(id);view='hidden'}save();render()};setTimeout(load,300);
 })();
+
+/* Admin Catalogue UI — isolated title-first accordion. */
+(() => {
+  if (window.__ANTENEH_ADMIN_CATALOGUE_UI__) return;
+  window.__ANTENEH_ADMIN_CATALOGUE_UI__ = true;
+  let observer;
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  function enhance() {
+    const root = document.getElementById('booksAdmin');
+    if (!root) return;
+    const heading = [...root.children].find(x => x.tagName === 'H3' && x.textContent.trim() === 'Catalogue');
+    const cards = [...root.children].filter(x => x.classList?.contains('pay-card'));
+    if (!heading || !cards.length) return;
+    if (root.dataset.catalogueEnhanced === '1') return;
+    const items = cards.map(card => {
+      const b = card.querySelector('b');
+      const title = b?.textContent?.trim() || 'Untitled book';
+      const spans = [...card.querySelectorAll(':scope > span')];
+      const meta = spans[0]?.textContent?.trim() || '';
+      const free = /\bFREE\b/i.test(meta);
+      const buttons = [...card.querySelectorAll(':scope > button')].map(x => x.cloneNode(true));
+      return {title, meta, free, buttons};
+    });
+    observer?.disconnect();
+    root.dataset.catalogueEnhanced = '1';
+    root.replaceChildren(heading);
+    const makeSection = (label, free, icon) => {
+      const section = document.createElement('section');
+      section.className = 'catalogue-group';
+      section.innerHTML = `<h4 style="margin:18px 0 8px;font-size:1rem">${icon} ${label}</h4>`;
+      const list = document.createElement('div');
+      list.className = 'catalogue-accordion-list';
+      items.filter(x => x.free === free).forEach(item => {
+        const row = document.createElement('article');
+        row.className = 'catalogue-item';
+        row.style.cssText = 'border:1px solid #e5ddd2;border-radius:14px;background:#fff;margin:8px 0;overflow:hidden;';
+        const titleBtn = document.createElement('button');
+        titleBtn.type = 'button';
+        titleBtn.className = 'catalogue-title';
+        titleBtn.style.cssText = 'width:100%;border:0;background:transparent;text-align:left;padding:14px 16px;font:inherit;font-weight:700;font-size:.98rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;';
+        titleBtn.innerHTML = `<span>${esc(item.title)}</span><span aria-hidden="true">⌄</span>`;
+        const details = document.createElement('div');
+        details.className = 'catalogue-details';
+        details.hidden = true;
+        details.style.cssText = 'padding:0 16px 14px;border-top:1px solid #eee7de;';
+        const meta = document.createElement('div');
+        meta.className = 'small-note';
+        meta.style.margin = '12px 0 8px';
+        meta.textContent = item.meta;
+        details.appendChild(meta);
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;';
+        item.buttons.forEach(btn => actions.appendChild(btn));
+        details.appendChild(actions);
+        titleBtn.addEventListener('click', () => {
+          const open = !details.hidden;
+          document.querySelectorAll('#booksAdmin .catalogue-details').forEach(d => d.hidden = true);
+          document.querySelectorAll('#booksAdmin .catalogue-title span:last-child').forEach(a => a.textContent = '⌄');
+          if (!open) {
+            details.hidden = false;
+            titleBtn.querySelector('span:last-child').textContent = '⌃';
+          }
+        });
+        row.append(titleBtn, details);
+        list.appendChild(row);
+      });
+      if (!list.children.length) {
+        const empty = document.createElement('p');
+        empty.className = 'small-note';
+        empty.textContent = `No ${label.toLowerCase()} yet.`;
+        list.appendChild(empty);
+      }
+      section.appendChild(list);
+      return section;
+    };
+    root.append(makeSection('Paid Books', false, '💳'), makeSection('Free Books', true, '🆓'));
+    if (observer) observer.observe(root, {childList:true, subtree:true});
+  }
+  function resetMarker(){const root=document.getElementById('booksAdmin');if(root)root.dataset.catalogueEnhanced='0';enhance();}
+  observer = new MutationObserver(() => {
+    const root=document.getElementById('booksAdmin');
+    if(root?.dataset.catalogueEnhanced==='1') return;
+    clearTimeout(window.__ANTENEH_CATALOGUE_TIMER__);
+    window.__ANTENEH_CATALOGUE_TIMER__=setTimeout(enhance,0);
+  });
+  const start=()=>{const root=document.getElementById('booksAdmin');if(root)observer.observe(root,{childList:true,subtree:true});enhance();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  window.refreshAdminCatalogue=resetMarker;
+})();
