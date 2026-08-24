@@ -52,7 +52,7 @@
   setTimeout(()=>window.loadOrders(),0);
 })();
 
-/* Small admin UI polish: catalogue cards collapse to title-only, and product publishing choices are clearer. */
+/* Catalogue cards remain title-first; the publishing access controls are defined once in admin.html to avoid duplicate UI. */
 (() => {
   const style = document.createElement('style');
   style.textContent = `
@@ -62,17 +62,6 @@
     #booksAdmin .catalogue-item{overflow:hidden}
     #booksAdmin .catalogue-item-details{display:none;padding:0 20px 18px}
     #booksAdmin .catalogue-item.open .catalogue-item-details{display:block}
-    #bookPublishChoices{margin:14px 0 18px}
-    #bookPublishChoices .choice-heading{font-weight:700;margin-bottom:10px}
-    #bookPublishChoices .access-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    #bookPublishChoices .access-choice{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px 12px;border:1px solid #e4ddd4;border-radius:17px;background:#fff;cursor:pointer;box-sizing:border-box;font-weight:700;font-size:1rem}
-    #bookPublishChoices .access-choice.paid.active{border-color:#b13d2c;box-shadow:0 0 0 2px rgba(177,61,44,.08);background:rgba(177,61,44,.06)}
-    #bookPublishChoices .access-choice.free.active{border-color:#168a4b;box-shadow:0 0 0 2px rgba(22,138,75,.08);background:rgba(22,138,75,.08)}
-    #bookPublishChoices .access-icon{font-size:1.35rem}
-    #bookPublishChoices .type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    #bookPublishChoices .type-choice{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border:1px solid #e4ddd4;border-radius:16px;background:#fff;cursor:pointer;font-weight:700}
-    #bookPublishChoices .type-choice.active{border-color:#b13d2c;box-shadow:0 0 0 2px rgba(177,61,44,.08);background:rgba(177,61,44,.06)}
-    @media(max-width:520px){#bookPublishChoices .access-row,#bookPublishChoices .type-row{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
 
@@ -110,36 +99,7 @@
     });
   }
 
-  function polishPublishForm() {
-    const form = document.getElementById('bookForm');
-    const free = document.getElementById('free');
-    const type = document.getElementById('type');
-    if (!form || !free || !type || document.getElementById('bookPublishChoices')) return;
-    const freeLabel = free.closest('label');
-    const typeLabel = type.closest('label');
-    const block = document.createElement('div');
-    block.id = 'bookPublishChoices';
-    block.innerHTML = `<div class="choice-heading">📚 Book access</div><div class="access-row"><button type="button" class="access-choice paid" data-access="paid"><span class="access-icon">💳</span><span>Paid Books</span></button><button type="button" class="access-choice free" data-access="free"><span class="access-icon">🆓</span><span>Free Books</span></button></div><div class="type-row"><button type="button" class="type-choice" data-type="Ebook">📕 Ebook</button><button type="button" class="type-choice" data-type="Audiobook">🎧 Audiobook</button></div>`;
-    const paidChoice = block.querySelector('[data-access="paid"]');
-    const freeChoice = block.querySelector('[data-access="free"]');
-    const typeRow = block.querySelector('.type-row');
-    paidChoice.addEventListener('click', () => { free.checked = false; free.dispatchEvent(new Event('change',{bubbles:true})); sync(); });
-    freeChoice.addEventListener('click', () => { free.checked = true; free.dispatchEvent(new Event('change',{bubbles:true})); sync(); });
-    block.querySelectorAll('.type-choice').forEach(btn => btn.addEventListener('click', () => { type.value = btn.dataset.type; type.dispatchEvent(new Event('change',{bubbles:true})); sync(); }));
-    (freeLabel || typeLabel)?.before(block);
-    if (freeLabel) freeLabel.style.display='none';
-    if (typeLabel) typeLabel.style.display='none';
-    function sync(){
-      const isFree = !!free.checked;
-      paidChoice.classList.toggle('active', !isFree);
-      freeChoice.classList.toggle('active', isFree);
-      typeRow.style.display = isFree ? 'none' : '';
-      block.querySelectorAll('.type-choice').forEach(btn => btn.classList.toggle('active', btn.dataset.type===type.value));
-    }
-    sync();
-  }
-
-  const boot = () => { polishCatalogue(); polishPublishForm(); };
+  const boot = () => polishCatalogue();
   setTimeout(boot, 0);
   const catalogueObserver = new MutationObserver(polishCatalogue);
   setTimeout(() => { const host=document.getElementById('booksAdmin'); if(host) catalogueObserver.observe(host,{childList:true,subtree:true}); }, 0);
