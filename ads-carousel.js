@@ -9,24 +9,35 @@
   function setupAutoScroll(cardsGrid) {
     if (cardsGrid.dataset.autoScrollReady === '1') return;
     cardsGrid.dataset.autoScrollReady = '1';
-    let manual = false;
-    let timer = null;
+
+    let manualUntil = 0;
+    const AUTO_DELAY = 5000;
+    const markManual = () => {
+      manualUntil = Date.now() + AUTO_DELAY;
+    };
+
     const step = () => {
-      if (manual) return;
-      const card = cardsGrid.querySelector('.promo-card');
-      if (!card) return;
+      if (Date.now() < manualUntil) return;
+      const cards = cardsGrid.querySelectorAll('.promo-card');
+      if (cards.length < 2 || cardsGrid.scrollWidth <= cardsGrid.clientWidth + 4) return;
+
+      const card = cards[0];
       const gap = parseFloat(getComputedStyle(cardsGrid).gap || '0');
       const amount = card.getBoundingClientRect().width + gap;
       const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 4;
-      cardsGrid.scrollTo({left: atEnd ? 0 : cardsGrid.scrollLeft + amount, behavior:'smooth'});
+      cardsGrid.scrollTo({
+        left: atEnd ? 0 : cardsGrid.scrollLeft + amount,
+        behavior: 'smooth'
+      });
     };
-    const stop = () => {
-      manual = true;
-      if (timer) clearInterval(timer);
-      timer = null;
-    };
-    ['wheel','touchstart','pointerdown'].forEach(evt => cardsGrid.addEventListener(evt, stop, {passive:true, once:true}));
-    timer = setInterval(step, 5000);
+
+    ['wheel', 'touchstart', 'pointerdown'].forEach(evt => {
+      cardsGrid.addEventListener(evt, markManual, {passive:true});
+    });
+
+    // Manual horizontal swiping/scrolling always remains available.
+    // Autoplay waits 5 seconds after the last manual interaction, then resumes.
+    const timer = setInterval(step, AUTO_DELAY);
     autoTimers.set(cardsGrid, timer);
   }
 
