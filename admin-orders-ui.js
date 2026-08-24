@@ -51,3 +51,88 @@
 
   setTimeout(()=>window.loadOrders(),0);
 })();
+
+/* Small admin UI polish: catalogue cards collapse to title-only, and product publishing choices are clearer. */
+(() => {
+  const style = document.createElement('style');
+  style.textContent = `
+    #booksAdmin .catalogue-item-title{display:block;width:100%;padding:18px 20px;border:0;background:transparent;text-align:left;font:inherit;font-weight:700;font-size:1.08rem;cursor:pointer;color:inherit}
+    #booksAdmin .catalogue-item-title:after{content:'⌄';float:right;opacity:.55;transition:transform .18s ease}
+    #booksAdmin .catalogue-item-title[aria-expanded="true"]:after{transform:rotate(180deg)}
+    #booksAdmin .catalogue-item{overflow:hidden}
+    #booksAdmin .catalogue-item-details{display:none;padding:0 20px 18px}
+    #booksAdmin .catalogue-item.open .catalogue-item-details{display:block}
+    #bookPublishChoices{margin:14px 0 18px}
+    #bookPublishChoices .choice-heading{font-weight:700;margin-bottom:10px}
+    #bookPublishChoices .free-choice{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:1px solid rgba(22,138,75,.22);border-radius:18px;background:rgba(22,138,75,.06);cursor:pointer;box-sizing:border-box}
+    #bookPublishChoices .free-choice.active{border-color:#168a4b;background:rgba(22,138,75,.12)}
+    #bookPublishChoices .free-icon{font-size:1.7rem}
+    #bookPublishChoices .type-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    #bookPublishChoices .type-choice{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border:1px solid #e4ddd4;border-radius:16px;background:#fff;cursor:pointer;font-weight:700}
+    #bookPublishChoices .type-choice.active{border-color:#b13d2c;box-shadow:0 0 0 2px rgba(177,61,44,.08);background:rgba(177,61,44,.06)}
+    @media(max-width:520px){#bookPublishChoices .type-row{grid-template-columns:1fr}}
+  `;
+  document.head.appendChild(style);
+
+  function polishCatalogue() {
+    const host = document.getElementById('booksAdmin');
+    if (!host) return;
+    host.querySelectorAll(':scope > .pay-card').forEach(card => {
+      if (card.dataset.cataloguePolished === '1') return;
+      const title = card.querySelector(':scope > b');
+      if (!title) return;
+      card.dataset.cataloguePolished = '1';
+      card.classList.add('catalogue-item');
+      const details = document.createElement('div');
+      details.className = 'catalogue-item-details';
+      while (title.nextSibling) details.appendChild(title.nextSibling);
+      const titleButton = document.createElement('button');
+      titleButton.type = 'button';
+      titleButton.className = 'catalogue-item-title';
+      titleButton.textContent = title.textContent || '';
+      titleButton.setAttribute('aria-expanded','false');
+      title.replaceWith(titleButton);
+      card.appendChild(details);
+      titleButton.addEventListener('click', () => {
+        const open = card.classList.contains('open');
+        host.querySelectorAll('.catalogue-item.open').forEach(other => {
+          if (other !== card) {
+            other.classList.remove('open');
+            const t = other.querySelector('.catalogue-item-title');
+            if (t) t.setAttribute('aria-expanded','false');
+          }
+        });
+        card.classList.toggle('open', !open);
+        titleButton.setAttribute('aria-expanded', String(!open));
+      });
+    });
+  }
+
+  function polishPublishForm() {
+    const form = document.getElementById('bookForm');
+    const free = document.getElementById('free');
+    const type = document.getElementById('type');
+    if (!form || !free || !type || document.getElementById('bookPublishChoices')) return;
+    const freeLabel = free.closest('label');
+    const typeLabel = type.closest('label');
+    const block = document.createElement('div');
+    block.id = 'bookPublishChoices';
+    block.innerHTML = `<div class="choice-heading">📚 Book access</div><label class="free-choice"><span class="free-icon">🆓</span><span><b>Free Books</b><br><small>No payment required</small></span></label><div class="type-row"><button type="button" class="type-choice" data-type="Ebook">📕 Ebook</button><button type="button" class="type-choice" data-type="Audiobook">🎧 Audiobook</button></div>`;
+    const freeChoice = block.querySelector('.free-choice');
+    freeChoice.addEventListener('click', () => { free.checked = !free.checked; free.dispatchEvent(new Event('change',{bubbles:true})); sync(); });
+    block.querySelectorAll('.type-choice').forEach(btn => btn.addEventListener('click', () => { type.value = btn.dataset.type; type.dispatchEvent(new Event('change',{bubbles:true})); sync(); }));
+    (freeLabel || typeLabel)?.before(block);
+    if (freeLabel) freeLabel.style.display='none';
+    if (typeLabel) typeLabel.style.display='none';
+    function sync(){
+      freeChoice.classList.toggle('active', free.checked);
+      block.querySelectorAll('.type-choice').forEach(btn => btn.classList.toggle('active', btn.dataset.type===type.value));
+    }
+    sync();
+  }
+
+  const boot = () => { polishCatalogue(); polishPublishForm(); };
+  setTimeout(boot, 0);
+  const catalogueObserver = new MutationObserver(polishCatalogue);
+  setTimeout(() => { const host=document.getElementById('booksAdmin'); if(host) catalogueObserver.observe(host,{childList:true,subtree:true}); }, 0);
+})();
