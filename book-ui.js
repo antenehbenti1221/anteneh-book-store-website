@@ -11,10 +11,34 @@
     #grid .book .book-preview[hidden]{display:none}
     #grid .book .book-preview .desc{min-height:0;margin:0 0 12px}
     #grid .book .book-preview .book-view-button{display:inline-flex}
-    #adGrid .promo-image{display:block;overflow:hidden}
-    #adGrid .promo-image img{display:block;width:100%;height:100%;object-fit:contain!important;object-position:center!important}
-    #adGrid .promo-overlay{position:static!important;inset:auto!important;background:transparent!important;color:inherit!important;padding:8px 4px 0!important;display:flex!important;flex-direction:column!important;gap:3px!important;text-shadow:none!important;min-width:0!important}
-    #adGrid .promo-overlay strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* Ads: display the uploaded cover/mockup exactly as supplied.
+       No generated title/price overlay, no crop, no extra frame. */
+    #adGrid .promo-image{
+      display:flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      overflow:visible!important;
+      background:transparent!important;
+      padding:0!important;
+      border-radius:12px!important;
+    }
+    #adGrid .promo-image img{
+      display:block!important;
+      width:auto!important;
+      height:auto!important;
+      max-width:100%!important;
+      max-height:100%!important;
+      object-fit:contain!important;
+      object-position:center!important;
+      margin:auto!important;
+      border-radius:0!important;
+      box-shadow:none!important;
+    }
+    #adGrid .promo-overlay{
+      display:none!important;
+      visibility:hidden!important;
+    }
     #adGrid .promo-action{padding:0 4px 8px}
   `;
   document.head.appendChild(style);
