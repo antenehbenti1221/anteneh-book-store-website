@@ -1,77 +1,209 @@
-/* Admin order list: pending stays active; completed orders can be hidden without deleting history. */
+/* Admin Orders UI — single instance only. Keeps completed orders in History; Hide moves to Hidden; Show again returns to History. */
 (() => {
+  if (window.__ANTENEH_ADMIN_ORDERS_UI__) return;
+  window.__ANTENEH_ADMIN_ORDERS_UI__ = true;
+
   const $ = id => document.getElementById(id);
   let allOrders = [];
   let booksBy = {};
-  let view = 'pending';
-  let loadVersion = 0;
-  const hidden = new Set(JSON.parse(localStorage.getItem('adminHiddenOrders') || '[]'));
-  const saveHidden = () => localStorage.setItem('adminHiddenOrders', JSON.stringify([...hidden]));
-  const esc2 = s => String(s ?? '').replace(/[&<>"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&#039;'}[x]));
+  let currentView = 'pending';
+  let loadToken = 0;
+  let loading = false;
 
-  function renderOrders() {
-    const host = $('ordersAdmin');
-    if (!host) return;
-    const pending = allOrders.filter(o => o.status === 'pending');
-    const completed = allOrders.filter(o => o.status === 'approved' || o.status === 'rejected');
-    const history = completed.filter(o => !hidden.has(o.id));
-    const hiddenOrders = completed.filter(o => hidden.has(o.id));
-    let list = view === 'pending' ? pending : view === 'archived' ? history : view === 'hidden' ? hiddenOrders : allOrders.filter(o => !hidden.has(o.id));
+  const hiddenKey = 'anteneh_admin_hidden_orders_v2';
+  let hiddenIds = new Set();
+  try { hiddenIds = new Set(JSON.parse(localStorage.getItem(hiddenKey) || '[]')); } catch (_) {}
+  const persistHidden = () => localStorage.setItem(hiddenKey, JSON.stringify([...hiddenIds]));
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 
-    host.innerHTML = `<div class="pay-card" style="margin:10px 0;padding:14px"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><button class="btn ${view==='pending'?'primary':''}" onclick="orderView('pending')">⏳ Pending (${pending.length})</button><button class="btn ${view==='archived'?'primary':''}" onclick="orderView('archived')">📁 History (${history.length})</button><button class="btn ${view==='all'?'primary':''}" onclick="orderView('all')">All (${allOrders.filter(o=>!hidden.has(o.id)).length})</button><button class="btn ${view==='hidden'?'primary':''}" onclick="orderView('hidden')">👁️ Hidden (${hiddenOrders.length})</button></div><p class="small-note" style="margin:10px 0 0">Approved and rejected orders stay in History. Hide moves an order to Hidden. Show again moves it back to History. Nothing is deleted.</p></div>`;
+  function normalStatus(o) { return String(o?.status || '').trim().toLowerCase(); }
+  function completed(o) { const s = normalStatus(o); return s === 'approved' || s === 'rejected'; }
 
-    if (!list.length) { host.innerHTML += `<div class="pay-card" style="margin:10px 0"><p>${view==='pending'?'🎉 No pending orders. You are all caught up.':view==='hidden'?'No hidden orders.':'No orders in this view.'}</p></div>`; return; }
-
-    host.innerHTML += list.map(o => {
-      const status = String(o.status || '').toLowerCase();
-      const isPending = status === 'pending';
-      const statusText = status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Pending';
-      const statusIcon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
-      const isHidden = hidden.has(o.id);
-      const action = isPending
-        ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button class="btn primary" onclick="setOrder('${o.id}','approved')">Approve</button><button class="btn" onclick="setOrder('${o.id}','rejected')">Reject</button></div>`
-        : `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button class="btn" onclick="toggleHidden('${o.id}')">${isHidden ? '↩️ Show again' : '🙈 Hide'}</button></div>`;
-      return `<div class="pay-card" style="margin:10px 0"><strong>${esc2(booksBy[o.book_id] || 'Book')}</strong><span>Customer: ${esc2(o.customer_name)} · ${esc2(o.customer_phone)}</span><span>${Number(o.amount).toLocaleString()} ${esc2(o.currency)} · <b>${statusIcon} ${statusText}</b></span><span>Receipt: ${o.payment_proof_path ? `<button class="btn" onclick="viewProof('${esc2(o.payment_proof_path)}')">📷 View receipt</button>` : 'Not uploaded'}</span><small>${new Date(o.created_at).toLocaleString()}</small>${action}<span id="order-feedback-${o.id}" class="small-note"></span></div>`;
-    }).join('');
+  function getLists() {
+    const pending = allOrders.filter(o => normalStatus(o) === 'pending');
+    const completedOrders = allOrders.filter(completed);
+    const history = completedOrders.filter(o => !hiddenIds.has(String(o.id)));
+    const hidden = completedOrders.filter(o => hiddenIds.has(String(o.id)));
+    const visibleAll = allOrders.filter(o => !hiddenIds.has(String(o.id)));
+    return { pending, history, hidden, visibleAll };
   }
 
-  window.orderView = v => { view = v; renderOrders(); };
+  function render() {
+    const host = $('ordersAdmin');
+    if (!host) return;
+    const { pending, history, hidden, visibleAll } = getLists();
+    const lists = { pending, history, hidden, all: visibleAll };
+    const list = lists[currentView] || pending;
+
+    host.replaceChildren();
+
+    const controls = document.createElement('div');
+    controls.className = 'pay-card admin-order-controls';
+    controls.style.cssText = 'margin:10px 0;padding:14px';
+    controls.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <button type="button" class="btn ${currentView==='pending'?'primary':''}" data-order-view="pending">⏳ Pending <span>(${pending.length})</span></button>
+        <button type="button" class="btn ${currentView==='history'?'primary':''}" data-order-view="history">📁 History <span>(${history.length})</span></button>
+        <button type="button" class="btn ${currentView==='all'?'primary':''}" data-order-view="all">All <span>(${visibleAll.length})</span></button>
+        <button type="button" class="btn ${currentView==='hidden'?'primary':''}" data-order-view="hidden">👁️ Hidden <span>(${hidden.length})</span></button>
+      </div>
+      <p class="small-note" style="margin:10px 0 0">Hide removes an approved/rejected order from the visible History. Show again returns it to History. Orders are never deleted.</p>`;
+    host.appendChild(controls);
+
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'pay-card';
+      empty.style.margin = '10px 0';
+      empty.innerHTML = `<p>${currentView==='pending' ? '🎉 No pending orders.' : currentView==='hidden' ? 'No hidden orders.' : 'No orders in this view.'}</p>`;
+      host.appendChild(empty);
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    list.forEach(o => {
+      const id = String(o.id);
+      const status = normalStatus(o);
+      const isPending = status === 'pending';
+      const isHidden = hiddenIds.has(id);
+      const card = document.createElement('div');
+      card.className = 'pay-card admin-order-card';
+      card.style.margin = '10px 0';
+      const statusText = status === 'approved' ? 'Approved' : status === 'rejected' ? 'Rejected' : 'Pending';
+      const statusIcon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
+      card.innerHTML = `
+        <strong>${esc(booksBy[o.book_id] || 'Book')}</strong>
+        <span>Customer: ${esc(o.customer_name)}${o.customer_phone ? ' · ' + esc(o.customer_phone) : ''}</span>
+        <span>${Number(o.amount || 0).toLocaleString()} ${esc(o.currency || 'ETB')} · <b>${statusIcon} ${statusText}</b></span>
+        <span>Receipt: ${o.payment_proof_path ? '<button type="button" class="btn" data-receipt="'+esc(o.payment_proof_path)+'">📷 View receipt</button>' : 'Not uploaded'}</span>
+        <small>${o.created_at ? new Date(o.created_at).toLocaleString() : ''}</small>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">
+          ${isPending ? '<button type="button" class="btn primary" data-order-action="approve">Approve</button><button type="button" class="btn" data-order-action="reject">Reject</button>' : '<button type="button" class="btn" data-order-action="toggle-hidden">'+(isHidden ? '↩️ Show again' : '🙈 Hide')+'</button>'}
+        </div>
+        <span class="small-note" data-feedback></span>`;
+      card.dataset.orderId = id;
+      fragment.appendChild(card);
+    });
+    host.appendChild(fragment);
+  }
+
+  async function loadOrders() {
+    const host = $('ordersAdmin');
+    if (!host || !window.sb) return;
+    const token = ++loadToken;
+    if (!loading) host.dataset.loading = '1';
+    loading = true;
+    try {
+      const result = await sb.from('orders')
+        .select('id,book_id,customer_name,customer_email,customer_phone,amount,currency,status,payment_reference,payment_proof_path,created_at')
+        .order('created_at', { ascending: false });
+      if (token !== loadToken) return;
+      if (result.error) { host.textContent = result.error.message; return; }
+
+      const booksResult = await sb.from('books').select('id,title');
+      if (token !== loadToken) return;
+      if (booksResult.error) { host.textContent = booksResult.error.message; return; }
+
+      booksBy = {};
+      (booksResult.data || []).forEach(b => { booksBy[String(b.id)] = b.title; });
+      allOrders = Array.isArray(result.data) ? result.data : [];
+
+      /* Remove stale hidden IDs that no longer belong to completed orders. */
+      const valid = new Set(allOrders.filter(completed).map(o => String(o.id)));
+      const cleaned = [...hiddenIds].filter(id => valid.has(String(id)));
+      if (cleaned.length !== hiddenIds.size) { hiddenIds = new Set(cleaned); persistHidden(); }
+
+      render();
+    } finally {
+      if (token === loadToken) { loading = false; delete host.dataset.loading; }
+    }
+  }
+
+  async function setOrder(id, status, card) {
+    const feedback = card?.querySelector('[data-feedback]');
+    const buttons = card?.querySelectorAll('button') || [];
+    buttons.forEach(b => b.disabled = true);
+    if (feedback) feedback.textContent = status === 'approved' ? 'Approving payment…' : 'Rejecting payment…';
+    const { error } = await sb.rpc('admin_update_order', { p_order_id: id, p_status: status });
+    if (error) {
+      if (feedback) feedback.textContent = '❌ ' + error.message;
+      buttons.forEach(b => b.disabled = false);
+      return;
+    }
+    await loadOrders();
+  }
+
+  async function viewReceipt(path) {
+    if (!path) return;
+    const { data, error } = await sb.storage.from('payment-proofs').createSignedUrl(path, 600);
+    if (error || !data?.signedUrl) { alert('Receipt could not be opened: ' + (error?.message || 'Unknown error')); return; }
+    window.open(data.signedUrl, '_blank', 'noopener');
+  }
+
+  function handleClick(event) {
+    const host = $('ordersAdmin');
+    if (!host || !host.contains(event.target)) return;
+
+    const viewButton = event.target.closest('[data-order-view]');
+    if (viewButton) {
+      event.preventDefault();
+      currentView = viewButton.dataset.orderView;
+      render();
+      return;
+    }
+
+    const receiptButton = event.target.closest('[data-receipt]');
+    if (receiptButton) {
+      event.preventDefault();
+      viewReceipt(receiptButton.dataset.receipt);
+      return;
+    }
+
+    const actionButton = event.target.closest('[data-order-action]');
+    if (!actionButton) return;
+    event.preventDefault();
+    const card = actionButton.closest('[data-order-id]');
+    if (!card) return;
+    const id = String(card.dataset.orderId);
+    const action = actionButton.dataset.orderAction;
+
+    if (action === 'toggle-hidden') {
+      if (hiddenIds.has(id)) {
+        hiddenIds.delete(id);
+        persistHidden();
+        currentView = 'history';
+      } else {
+        hiddenIds.add(id);
+        persistHidden();
+        currentView = 'hidden';
+      }
+      render();
+      return;
+    }
+
+    if (action === 'approve') setOrder(id, 'approved', card);
+    if (action === 'reject') setOrder(id, 'rejected', card);
+  }
+
+  document.addEventListener('click', handleClick);
+
+  window.orderView = view => { currentView = view; render(); };
   window.toggleHidden = id => {
-    if (hidden.has(id)) { hidden.delete(id); view = 'archived'; }
-    else { hidden.add(id); view = 'hidden'; }
-    saveHidden();
-    renderOrders();
+    const key = String(id);
+    if (hiddenIds.has(key)) { hiddenIds.delete(key); currentView = 'history'; }
+    else { hiddenIds.add(key); currentView = 'hidden'; }
+    persistHidden();
+    render();
   };
+  window.loadOrders = loadOrders;
 
-  window.loadOrders = async function() {
-    const host = $('ordersAdmin'); if (!host) return;
-    const version = ++loadVersion;
-    host.innerHTML = 'Loading…';
-    const {data, error} = await sb.from('orders').select('id,book_id,customer_name,customer_email,customer_phone,amount,currency,status,payment_reference,payment_proof_path,created_at').order('created_at',{ascending:false});
-    if (version !== loadVersion) return;
-    if (error) { host.textContent = error.message; return; }
-    const b = (await sb.from('books').select('id,title')).data || [];
-    if (version !== loadVersion) return;
-    booksBy = {}; b.forEach(x => booksBy[x.id] = x.title);
-    allOrders = data || [];
-    renderOrders();
-  };
-
-  window.setOrder = async (id,status) => {
-    const feedback = $('order-feedback-'+id);
-    const buttons = document.querySelectorAll(`button[onclick*="setOrder('${id}'"]`);
-    buttons.forEach(b=>b.disabled=true);
-    if(feedback)feedback.textContent=status==='approved'?'Approving payment…':'Rejecting payment…';
-    const {error}=await sb.rpc('admin_update_order',{p_order_id:id,p_status:status});
-    if(error){if(feedback)feedback.textContent='❌ '+error.message;buttons.forEach(b=>b.disabled=false);return;}
-    await window.loadOrders();
-  };
-
-  setTimeout(()=>window.loadOrders(),0);
+  /* Initial render/load is deliberately delayed until the page's auth refresh has created sb. */
+  setTimeout(loadOrders, 0);
 })();
 
-/* Catalogue: compact title-first cards, separated into Paid Books and Free Books. */
+/* Catalogue styling is kept separate from the order logic above. */
 (() => {
+  if (window.__ANTENEH_ADMIN_CATALOGUE_UI__) return;
+  window.__ANTENEH_ADMIN_CATALOGUE_UI__ = true;
   const style = document.createElement('style');
   style.textContent = `
     #booksAdmin .catalogue-sections{display:grid;gap:18px;margin-top:14px}
@@ -91,12 +223,9 @@
   `;
   document.head.appendChild(style);
 
-  let grouping = false;
-
   function polishCatalogue() {
     const host = document.getElementById('booksAdmin');
-    if (!host || grouping) return;
-
+    if (!host) return;
     host.querySelectorAll(':scope > .pay-card').forEach(card => {
       if (card.dataset.cataloguePolished === '1') return;
       const title = card.querySelector(':scope > b');
@@ -127,44 +256,34 @@
       });
     });
 
-    groupCatalogue(host);
-  }
-
-  function groupCatalogue(host) {
+    const sections = host.querySelector(':scope > .catalogue-sections');
+    if (sections) return;
     const cards = [...host.querySelectorAll(':scope > .catalogue-item')];
-    if (!cards.length || host.querySelector(':scope > .catalogue-sections')) return;
-
-    const isFreeCard = card => /\bFREE\b/i.test(card.querySelector('.catalogue-item-details span')?.textContent || '');
-    const paid = cards.filter(card => !isFreeCard(card));
-    const free = cards.filter(card => isFreeCard(card));
-    grouping = true;
-
-    const sections = document.createElement('div');
-    sections.className = 'catalogue-sections';
-
-    const makeSection = (label, icon, list) => {
-      if (!list.length) return;
+    if (!cards.length) return;
+    const free = cards.filter(c => /\bFREE\b/i.test(c.querySelector('.catalogue-item-details span')?.textContent || ''));
+    const paid = cards.filter(c => !free.includes(c));
+    const wrap = document.createElement('div');
+    wrap.className = 'catalogue-sections';
+    const add = (label, icon, items) => {
+      if (!items.length) return;
       const section = document.createElement('section');
       section.className = 'catalogue-section';
-      section.innerHTML = `<div class="catalogue-section-heading"><span class="catalogue-icon">${icon}</span><h4>${label}</h4><span class="catalogue-section-count">${list.length}</span></div>`;
-      const listHost = document.createElement('div');
-      listHost.className = 'catalogue-section-list';
-      list.forEach(card => listHost.appendChild(card));
-      section.appendChild(listHost);
-      sections.appendChild(section);
+      section.innerHTML = `<div class="catalogue-section-heading"><span class="catalogue-icon">${icon}</span><h4>${label}</h4><span class="catalogue-section-count">${items.length}</span></div>`;
+      const list = document.createElement('div');
+      list.className = 'catalogue-section-list';
+      items.forEach(card => list.appendChild(card));
+      section.appendChild(list);
+      wrap.appendChild(section);
     };
-
-    makeSection('Paid Books', '💳', paid);
-    makeSection('Free Books', '🆓', free);
-    host.appendChild(sections);
-    grouping = false;
+    add('Paid Books','💳',paid);
+    add('Free Books','🆓',free);
+    host.appendChild(wrap);
   }
 
-  const boot = () => polishCatalogue();
-  setTimeout(boot, 0);
-  const catalogueObserver = new MutationObserver(() => setTimeout(polishCatalogue, 0));
+  setTimeout(polishCatalogue, 0);
+  const observer = new MutationObserver(() => setTimeout(polishCatalogue, 0));
   setTimeout(() => {
     const host = document.getElementById('booksAdmin');
-    if (host) catalogueObserver.observe(host, {childList:true, subtree:true});
+    if (host) observer.observe(host, {childList:true, subtree:true});
   }, 0);
 })();
