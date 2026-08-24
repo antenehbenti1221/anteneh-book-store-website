@@ -63,7 +63,7 @@
     #booksAdmin .catalogue-section-heading h4{margin:0;font-size:1rem}
     #booksAdmin .catalogue-section-count{font-size:.78rem;font-weight:600;opacity:.62}
     #booksAdmin .catalogue-section-list{display:grid;gap:6px}
-    #booksAdmin .catalogue-item-title{display:block;width:100%;padding:12px 14px;border:0;background:transparent;text-align:left;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;color:inherit}
+    #booksAdmin .catalogue-item-title{display:block;width:100%;padding:12px 14px;border:0;background:transparent;text-align:left;font:inherit;font-weight:700;font-size:.86rem;cursor:pointer;color:inherit}
     #booksAdmin .catalogue-item-title:after{content:'⌄';float:right;opacity:.5;transition:transform .18s ease}
     #booksAdmin .catalogue-item-title[aria-expanded="true"]:after{transform:rotate(180deg)}
     #booksAdmin .catalogue-item{overflow:hidden;margin:0!important}
