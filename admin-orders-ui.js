@@ -116,8 +116,9 @@
     const cards = [...host.querySelectorAll(':scope > .catalogue-item')];
     if (!cards.length || host.querySelector(':scope > .catalogue-sections')) return;
 
-    const paid = cards.filter(card => !/\bFREE\b/i.test(card.textContent));
-    const free = cards.filter(card => /\bFREE\b/i.test(card.textContent));
+    const isFreeCard = card => /\bFREE\b/i.test(card.querySelector('.catalogue-item-details span')?.textContent || '');
+    const paid = cards.filter(card => !isFreeCard(card));
+    const free = cards.filter(card => isFreeCard(card));
     grouping = true;
 
     const sections = document.createElement('div');
