@@ -139,4 +139,7 @@
   observer.observe(document.getElementById('grid')||document.body,{childList:true,subtree:true});
   observer.observe(document.getElementById('freeGrid')||document.body,{childList:true,subtree:true});
   enhance();
+  const fix=document.createElement('script');
+  fix.src='free-books-fix.js?v=20260824-1';
+  document.body.appendChild(fix);
 })();
