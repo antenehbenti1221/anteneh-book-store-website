@@ -46,6 +46,9 @@
     result.hidden=false;
     result.innerHTML='<p class="small-note">Preparing your free book…</p>';
     try{
+      const {data:book,error:bookError}=await c.from('books').select('type').eq('id',id).maybeSingle();
+      if(bookError)throw bookError;
+      const kind=String(book?.type||'').toLowerCase().includes('audio')?'audio':'ebook';
       const {data,error}=await c.rpc('create_store_order',{
         p_book_id:id,
         p_customer_name:'Free reader',
@@ -55,7 +58,6 @@
       if(error)throw error;
       const o=Array.isArray(data)?data[0]:data;
       if(!o || !o.access_token)throw new Error('Free access token was not returned');
-      const kind=(card.textContent||'').toLowerCase().includes('audio')?'audio':'ebook';
       const r=await fetch(`${C.SUPABASE_URL}/functions/v1/deliver-purchase`,{
         method:'POST',
         headers:{'Content-Type':'application/json',apikey:C.SUPABASE_PUBLISHABLE_KEY},
