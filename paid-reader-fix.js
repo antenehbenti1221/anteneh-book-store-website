@@ -1,16 +1,30 @@
-/* Isolated fix: open approved PAID ebooks directly in the browser reader. */
+/* Isolated fixes: paid book browser + approved paid ebook reader only. */
 (() => {
   const C = window.STORE_CONFIG || {};
-  const isPaidCard = button => {
+
+  // Paid catalogue "View" must open the normal book/checkout view,
+  // not the description-only accordion behavior used by the catalogue UI.
+  document.addEventListener('click', event => {
+    const button = event.target.closest('#grid [data-card-view]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const id = button.dataset.id;
+    if (id && typeof window.openBook === 'function') window.openBook(id);
+  }, true);
+
+  const isPaidOrderCard = button => {
     const card = button.closest('.order-card');
     if (!card) return false;
     const text = card.textContent || '';
     return !/\b0(?:\.0+)?\s*ETB\b/i.test(text);
   };
 
+  // Approved paid ebooks open as an inline PDF in the browser. This avoids
+  // popup-blocker failures caused by opening a new tab after an async fetch.
   document.addEventListener('click', async event => {
     const button = event.target.closest('#orderStatus [data-open-token][data-open-kind="ebook"]');
-    if (!button || !isPaidCard(button)) return;
+    if (!button || !isPaidOrderCard(button)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
 
