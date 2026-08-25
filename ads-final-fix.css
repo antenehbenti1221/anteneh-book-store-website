@@ -1,19 +1,17 @@
-/* Ads-only final UX fix */
+/* Ads-only final UX fix: preserve uploaded description text exactly as stored. */
 .ads-top .ad-space > .eyebrow{font-size:11px!important;margin-bottom:4px!important;letter-spacing:.06em!important}
 .ads-top .ad-space > h2{font-size:clamp(20px,3vw,28px)!important;margin:0 0 5px!important}
 .ads-top .ad-space > p:not(.eyebrow){font-size:13px!important;line-height:1.35!important;margin:0 0 14px!important;max-width:620px!important}
-#ads .ad-grid{display:block!important;width:100%!important}
-#ads .promo-section{display:block!important;width:100%!important;max-width:none!important;clear:both!important;float:none!important;margin:0 0 24px!important}
-#ads .promo-section-paid{display:block!important;order:1!important}
-#ads .promo-section-free{display:block!important;order:2!important}
-#ads .promo-section-grid{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;max-width:none!important;overflow-x:auto!important;overflow-y:hidden!important;gap:14px!important;padding:5px 3px 14px!important;box-sizing:border-box!important;touch-action:pan-x!important;-webkit-overflow-scrolling:touch!important;scroll-behavior:smooth!important;scroll-snap-type:x proximity!important;scrollbar-width:none!important}
-#ads .promo-section-grid::-webkit-scrollbar{display:none!important}
-#ads .promo-section-grid>.promo-card{display:block!important;float:none!important;flex:0 0 min(48vw,330px)!important;width:min(48vw,330px)!important;min-width:min(48vw,330px)!important;max-width:min(48vw,330px)!important;scroll-snap-align:start!important}
-#ads .promo-section-heading{display:flex!important;align-items:center!important;gap:7px!important;margin-bottom:8px!important}
-#ads .promo-section-heading h3{margin:0!important}
-#ads .promo-image{width:100%!important;height:clamp(260px,34vw,390px)!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:#fff!important;padding:5px!important;box-sizing:border-box!important}
-#ads .promo-image img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;margin:auto!important}
-#details .ads-description-list{margin:14px 0 18px!important;padding:0 0 0 24px!important;display:grid!important;gap:9px!important;line-height:1.55!important}
-#details .ads-description-list li{padding-left:3px!important}
-@media(min-width:701px){#ads .promo-section-grid>.promo-card{flex-basis:min(48vw,330px)!important;width:min(48vw,330px)!important;min-width:min(48vw,330px)!important;max-width:min(48vw,330px)!important}}
-@media(max-width:700px){#ads .promo-section-grid>.promo-card{flex-basis:min(72vw,300px)!important;width:min(72vw,300px)!important;min-width:min(72vw,300px)!important;max-width:min(72vw,300px)!important}}
+.ads-top .ad-grid .promo-section{display:block!important;width:100%!important;margin:0 0 20px!important}
+.ads-top .ad-grid .promo-section-grid{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;gap:12px!important;padding:4px 2px 10px!important;scroll-snap-type:x proximity!important;scroll-behavior:smooth!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;overscroll-behavior-x:contain!important;scrollbar-width:none!important}
+.ads-top .ad-grid .promo-section-grid::-webkit-scrollbar{display:none!important}
+.ads-top .ad-grid .promo-section-grid .promo-card{flex:0 0 clamp(190px,26vw,260px)!important;width:clamp(190px,26vw,260px)!important;min-width:clamp(190px,26vw,260px)!important;max-width:clamp(190px,26vw,260px)!important;padding:8px!important;box-sizing:border-box!important;scroll-snap-align:start!important}
+.ads-top .ad-grid .promo-section-grid .promo-image{height:clamp(220px,30vw,300px)!important;min-height:clamp(220px,30vw,300px)!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:#fff!important;border-radius:12px!important;padding:4px!important;box-sizing:border-box!important}
+.ads-top .ad-grid .promo-section-grid .promo-image img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;display:block!important;margin:auto!important;border-radius:0!important;box-shadow:none!important}
+.ads-top .ad-grid .promo-section-heading{margin:0 0 7px!important}
+.ads-top .ad-grid .promo-section-heading h3{font-size:15px!important}
+/* Do not turn descriptions into generated lists or alter their punctuation/line breaks. */
+.ads-top .promo-card .promo-description,.ads-top .promo-card .description,.ads-top .promo-card [class*="description"]{white-space:pre-wrap!important;display:block!important}
+.ads-top .promo-card .promo-description::before,.ads-top .promo-card .promo-description::after,.ads-top .promo-card .description::before,.ads-top .promo-card .description::after{content:none!important}
+.ads-top .promo-card .promo-description li,.ads-top .promo-card .description li{list-style:none!important;margin:0!important;padding:0!important}
+@media(min-width:701px){.ads-top .ad-grid .promo-section-grid{gap:14px!important}.ads-top .ad-grid .promo-section-grid .promo-card{flex-basis:240px!important;width:240px!important;min-width:240px!important;max-width:240px!important}.ads-top .ad-grid .promo-section-grid .promo-image{height:285px!important;min-height:285px!important}}
