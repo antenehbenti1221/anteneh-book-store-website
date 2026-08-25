@@ -4,30 +4,65 @@
 
   let lastSignature = '';
   let working = false;
-  const autoTimers = new WeakMap();
 
   function setupAutoScroll(cardsGrid) {
     if (cardsGrid.dataset.autoScrollReady === '1') return;
     cardsGrid.dataset.autoScrollReady = '1';
-    let manual = false;
+
     let timer = null;
-    const step = () => {
-      if (manual) return;
+    let resumeTimer = null;
+    let dragging = false;
+    let startX = 0;
+    let startScroll = 0;
+
+    const cardStep = () => {
       const card = cardsGrid.querySelector('.promo-card');
-      if (!card) return;
+      if (!card) return 0;
       const gap = parseFloat(getComputedStyle(cardsGrid).gap || '0');
-      const amount = card.getBoundingClientRect().width + gap;
-      const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 4;
+      return card.getBoundingClientRect().width + gap;
+    };
+
+    const step = () => {
+      if (dragging) return;
+      const amount = cardStep();
+      if (!amount || cardsGrid.scrollWidth <= cardsGrid.clientWidth + 4) return;
+      const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 6;
       cardsGrid.scrollTo({left: atEnd ? 0 : cardsGrid.scrollLeft + amount, behavior:'smooth'});
     };
-    const stop = () => {
-      manual = true;
+
+    const startAuto = () => {
+      if (timer) clearInterval(timer);
+      timer = setInterval(step, 5000);
+    };
+
+    const userMoved = () => {
+      if (resumeTimer) clearTimeout(resumeTimer);
       if (timer) clearInterval(timer);
       timer = null;
+      resumeTimer = setTimeout(startAuto, 5000);
     };
-    ['wheel','touchstart','pointerdown'].forEach(evt => cardsGrid.addEventListener(evt, stop, {passive:true, once:true}));
-    timer = setInterval(step, 5000);
-    autoTimers.set(cardsGrid, timer);
+
+    cardsGrid.addEventListener('wheel', userMoved, {passive:true});
+    cardsGrid.addEventListener('touchstart', userMoved, {passive:true});
+    cardsGrid.addEventListener('scroll', () => {
+      if (dragging) userMoved();
+    }, {passive:true});
+
+    cardsGrid.addEventListener('pointerdown', e => {
+      dragging = true;
+      startX = e.clientX;
+      startScroll = cardsGrid.scrollLeft;
+      cardsGrid.setPointerCapture?.(e.pointerId);
+      userMoved();
+    });
+    cardsGrid.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      cardsGrid.scrollLeft = startScroll - (e.clientX - startX);
+    });
+    cardsGrid.addEventListener('pointerup', () => { dragging = false; });
+    cardsGrid.addEventListener('pointercancel', () => { dragging = false; });
+
+    startAuto();
   }
 
   function setupSections() {
@@ -53,18 +88,20 @@
       section.innerHTML = `<div class="promo-section-heading"><span>${icon}</span><h3>${title}</h3></div>`;
       const cardsGrid = document.createElement('div');
       cardsGrid.className = 'promo-section-grid';
+      cardsGrid.setAttribute('aria-label', `${title} carousel`);
       list.forEach(card => cardsGrid.appendChild(card));
       section.appendChild(cardsGrid);
       grid.appendChild(section);
       setupAutoScroll(cardsGrid);
     };
 
+    // Keep Paid Books and Free Books in separate rows on every screen size.
     addSection('Paid Books', '💳', paid, 'paid');
     addSection('Free Books', '🆓', free, 'free');
 
     working = false;
   }
 
-  new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, { childList: true });
+  new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, {childList:true});
   setTimeout(setupSections, 300);
 })();
