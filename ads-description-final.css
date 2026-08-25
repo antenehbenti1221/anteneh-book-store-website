@@ -1,0 +1,15 @@
+/* Ads-only: force Paid and Free into separate vertical sections on every desktop width. */
+.ads-top #adGrid{display:block!important;width:100%!important}
+.ads-top #adGrid .promo-section{display:block!important;width:100%!important;clear:both!important}
+.ads-top #adGrid .promo-section-grid{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;touch-action:pan-x!important;-webkit-overflow-scrolling:touch!important;scroll-behavior:smooth!important;scrollbar-width:none!important}
+.ads-top #adGrid .promo-section-grid::-webkit-scrollbar{display:none!important}
+.ads-top #adGrid .promo-section-paid{display:block!important;margin-bottom:24px!important}
+.ads-top #adGrid .promo-section-free{display:block!important;margin-top:24px!important}
+.ads-top #adGrid .promo-section-paid + .promo-section-free{display:block!important}
+/* Keep each uploaded cover intact inside its image frame. */
+.ads-top #adGrid .promo-image{display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
+.ads-top #adGrid .promo-image img{width:100%!important;height:100%!important;object-fit:contain!important;object-position:center!important}
+
+/* Clean detail descriptions: each source line becomes a separate bullet. */
+#details .description-bullets{margin:12px 0 16px;padding-left:22px}
+#details .description-bullets li{margin:7px 0;line-height:1.5}
