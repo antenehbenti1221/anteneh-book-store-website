@@ -1,0 +1,13 @@
+/* Ads-only final UX fix: larger image area, intact cover art, vertical Paid/Free sections. */
+.ads-top .ad-space > .eyebrow{font-size:11px!important;margin-bottom:4px!important;letter-spacing:.06em!important}
+.ads-top .ad-space > h2{font-size:clamp(20px,3vw,28px)!important;margin:0 0 5px!important}
+.ads-top .ad-space > p:not(.eyebrow){font-size:13px!important;line-height:1.35!important;margin:0 0 14px!important;max-width:620px!important}
+.ads-top .ad-grid .promo-section{display:block!important;width:100%!important;margin:0 0 20px!important}
+.ads-top .ad-grid .promo-section-grid{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;gap:12px!important;padding:4px 2px 10px!important;scroll-snap-type:x proximity!important;scroll-behavior:smooth!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;overscroll-behavior-x:contain!important;scrollbar-width:none!important}
+.ads-top .ad-grid .promo-section-grid::-webkit-scrollbar{display:none!important}
+.ads-top .ad-grid .promo-section-grid .promo-card{flex:0 0 clamp(190px,26vw,260px)!important;width:clamp(190px,26vw,260px)!important;min-width:clamp(190px,26vw,260px)!important;max-width:clamp(190px,26vw,260px)!important;padding:8px!important;box-sizing:border-box!important;scroll-snap-align:start!important}
+.ads-top .ad-grid .promo-section-grid .promo-image{height:clamp(220px,30vw,300px)!important;min-height:clamp(220px,30vw,300px)!important;width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:#fff!important;border-radius:12px!important;padding:4px!important;box-sizing:border-box!important}
+.ads-top .ad-grid .promo-section-grid .promo-image img{width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;display:block!important;margin:auto!important;border-radius:0!important;box-shadow:none!important}
+.ads-top .ad-grid .promo-section-heading{margin:0 0 7px!important}
+.ads-top .ad-grid .promo-section-heading h3{font-size:15px!important}
+@media(min-width:701px){.ads-top .ad-grid .promo-section-grid{gap:14px!important}.ads-top .ad-grid .promo-section-grid .promo-card{flex-basis:240px!important;width:240px!important;min-width:240px!important;max-width:240px!important}.ads-top .ad-grid .promo-section-grid .promo-image{height:285px!important;min-height:285px!important}}
