@@ -1,15 +1,70 @@
 (() => {
-  const root = document.getElementById('adGrid');
-  if (!root) return;
-  const C = window.STORE_CONFIG || {};
-  let timer = null;
-  let books = [];
-  const esc = s => String(s ?? '').replace(/[&<>\"']/g, x => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[x]));
-  const isFree = b => b.is_free || Number(b.price) === 0;
-  function card(b){return `<article class="promo-card" data-ads-book-id="${esc(b.id)}"><div class="promo-image">${b.cover_url?`<img src="${esc(b.cover_url)}" alt="${esc(b.title)}">`:'📚'}</div><div class="promo-action"><button class="btn primary" type="button" data-promo-id="${esc(b.id)}">View</button></div></article>`}
-  function rowStyle(row){row.style.display='flex';row.style.flexDirection='row';row.style.flexWrap='nowrap';row.style.width='100%';row.style.overflowX='auto';row.style.overflowY='hidden';row.style.gap='12px';row.style.padding='4px 2px 12px';row.style.boxSizing='border-box';row.style.touchAction='pan-x';row.style.scrollBehavior='smooth';row.style.scrollbarWidth='none';Array.from(row.children).forEach(c=>{c.style.flex='0 0 260px';c.style.width='260px';c.style.minWidth='260px';const im=c.querySelector('.promo-image');if(im){im.style.height='300px';im.style.display='flex';im.style.alignItems='center';im.style.justifyContent='center';im.style.overflow='hidden';im.style.background='#fff';im.style.padding='4px';im.style.boxSizing='border-box'}const img=c.querySelector('img');if(img){img.style.width='100%';img.style.height='100%';img.style.maxWidth='100%';img.style.maxHeight='100%';img.style.objectFit='contain';img.style.objectPosition='center'}})}
-  function startScroll(row){let pauseUntil=0,down=false,x=0,left=0;const pause=()=>pauseUntil=Date.now()+5000;row.addEventListener('wheel',e=>{pause();if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){e.preventDefault();row.scrollLeft+=e.deltaY}},{passive:false});row.addEventListener('pointerdown',e=>{pause();down=true;x=e.clientX;left=row.scrollLeft;row.setPointerCapture?.(e.pointerId)});row.addEventListener('pointermove',e=>{if(down)row.scrollLeft=left-(e.clientX-x)});['pointerup','pointercancel'].forEach(t=>row.addEventListener(t,()=>down=false));row.addEventListener('touchstart',pause,{passive:true});clearInterval(timer);timer=setInterval(()=>{if(Date.now()<pauseUntil)return;const max=row.scrollWidth-row.clientWidth;if(max>2){const step=272;row.scrollTo({left:row.scrollLeft+step>=max-2?0:row.scrollLeft+step,behavior:'smooth'})}},5000)}
-  function render(list){root.innerHTML='';root.style.display='block';const groups=[['Paid Books','💳',list.filter(b=>!isFree(b))],['Free Books','🆓',list.filter(isFree)]];for(const [title,icon,items] of groups){if(!items.length)continue;const s=document.createElement('section');s.className='promo-section';s.style.cssText='display:block!important;width:100%!important;clear:both!important;margin-bottom:20px!important';s.innerHTML=`<div class="promo-section-heading"><span>${icon}</span><h3>${title}</h3></div><div class="promo-section-grid"></div>`;const r=s.querySelector('.promo-section-grid');r.innerHTML=items.map(card).join('');root.appendChild(s);rowStyle(r);startScroll(r)}root.querySelectorAll('[data-promo-id]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const fn=window.openBook;if(typeof fn==='function')fn(b.dataset.promoId)}))}
-  async function load(){if(!C.SUPABASE_URL||!C.SUPABASE_PUBLISHABLE_KEY)return;try{const sb=window.supabase?.createClient?.(C.SUPABASE_URL,C.SUPABASE_PUBLISHABLE_KEY);if(!sb)return;const {data,error}=await sb.from('books').select('*').eq('is_published',true).order('created_at',{ascending:false});if(error)throw error;books=data||[];render(books)}catch(e){console.error('Ads load failed',e)}}
-  load();
+  const grid = document.getElementById('adGrid');
+  if (!grid) return;
+
+  let lastSignature = '';
+  let working = false;
+  const autoTimers = new WeakMap();
+
+  function setupAutoScroll(cardsGrid) {
+    if (cardsGrid.dataset.autoScrollReady === '1') return;
+    cardsGrid.dataset.autoScrollReady = '1';
+    let manual = false;
+    let timer = null;
+    const step = () => {
+      if (manual) return;
+      const card = cardsGrid.querySelector('.promo-card');
+      if (!card) return;
+      const gap = parseFloat(getComputedStyle(cardsGrid).gap || '0');
+      const amount = card.getBoundingClientRect().width + gap;
+      const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 4;
+      cardsGrid.scrollTo({left: atEnd ? 0 : cardsGrid.scrollLeft + amount, behavior:'smooth'});
+    };
+    const stop = () => {
+      manual = true;
+      if (timer) clearInterval(timer);
+      timer = null;
+    };
+    ['wheel','touchstart','pointerdown'].forEach(evt => cardsGrid.addEventListener(evt, stop, {passive:true, once:true}));
+    timer = setInterval(step, 5000);
+    autoTimers.set(cardsGrid, timer);
+  }
+
+  function setupSections() {
+    if (working) return;
+    const cards = [...grid.querySelectorAll(':scope > .promo-card')];
+    if (!cards.length) return;
+
+    const signature = cards.map(card => card.querySelector('[data-promo-id]')?.dataset.promoId || card.textContent.trim()).join('|');
+    if (signature === lastSignature && grid.querySelector('.promo-section')) return;
+    lastSignature = signature;
+    working = true;
+
+    const paid = cards.filter(card => !/^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
+    const free = cards.filter(card => /^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
+
+    grid.classList.remove('ads-carousel');
+    grid.innerHTML = '';
+
+    const addSection = (title, icon, list, kind) => {
+      if (!list.length) return;
+      const section = document.createElement('section');
+      section.className = `promo-section promo-section-${kind}`;
+      section.innerHTML = `<div class="promo-section-heading"><span>${icon}</span><h3>${title}</h3></div>`;
+      const cardsGrid = document.createElement('div');
+      cardsGrid.className = 'promo-section-grid';
+      list.forEach(card => cardsGrid.appendChild(card));
+      section.appendChild(cardsGrid);
+      grid.appendChild(section);
+      setupAutoScroll(cardsGrid);
+    };
+
+    addSection('Paid Books', '💳', paid, 'paid');
+    addSection('Free Books', '🆓', free, 'free');
+
+    working = false;
+  }
+
+  new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, { childList: true });
+  setTimeout(setupSections, 300);
 })();
