@@ -1,81 +1,61 @@
 (() => {
-  const grid = document.getElementById('adGrid');
-  if (!grid) return;
+  const root = document.getElementById('adGrid');
+  if (!root) return;
+  const timers = new WeakMap();
 
-  let lastSignature = '';
-  let working = false;
-  const autoTimers = new WeakMap();
-
-  function setupAutoScroll(cardsGrid) {
-    if (cardsGrid.dataset.autoScrollReady === '1') return;
-    cardsGrid.dataset.autoScrollReady = '1';
-
-    let manualUntil = 0;
-    const AUTO_DELAY = 5000;
-    const markManual = () => {
-      manualUntil = Date.now() + AUTO_DELAY;
-    };
-
-    const step = () => {
-      if (Date.now() < manualUntil) return;
-      const cards = cardsGrid.querySelectorAll('.promo-card');
-      if (cards.length < 2 || cardsGrid.scrollWidth <= cardsGrid.clientWidth + 4) return;
-
-      const card = cards[0];
-      const gap = parseFloat(getComputedStyle(cardsGrid).gap || '0');
-      const amount = card.getBoundingClientRect().width + gap;
-      const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 4;
-      cardsGrid.scrollTo({
-        left: atEnd ? 0 : cardsGrid.scrollLeft + amount,
-        behavior: 'smooth'
-      });
-    };
-
-    ['wheel', 'touchstart', 'pointerdown'].forEach(evt => {
-      cardsGrid.addEventListener(evt, markManual, {passive:true});
+  const forceSections = () => {
+    const sections = [...root.querySelectorAll(':scope > .promo-section')];
+    if (!sections.length) return;
+    const paid = sections.find(s => s.classList.contains('promo-section-paid'));
+    const free = sections.find(s => s.classList.contains('promo-section-free'));
+    if (paid && free) root.append(paid, free);
+    root.style.cssText += ';display:block!important;width:100%!important;';
+    [paid, free].filter(Boolean).forEach(section => {
+      section.style.cssText += ';display:block!important;width:100%!important;clear:both!important;';
+      const row = section.querySelector('.promo-section-grid');
+      if (!row) return;
+      row.style.cssText += ';display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;touch-action:pan-x!important;-webkit-overflow-scrolling:touch!important;';
+      installScroller(row);
     });
+  };
 
-    // Manual horizontal swiping/scrolling always remains available.
-    // Autoplay waits 5 seconds after the last manual interaction, then resumes.
-    const timer = setInterval(step, AUTO_DELAY);
-    autoTimers.set(cardsGrid, timer);
+  function installScroller(row) {
+    if (!row || timers.has(row)) return;
+    let pausedUntil = 0;
+    const pause = () => { pausedUntil = Date.now() + 5000; };
+    ['touchstart','pointerdown','wheel'].forEach(type => row.addEventListener(type, pause, {passive:true}));
+    const timer = setInterval(() => {
+      if (Date.now() < pausedUntil) return;
+      const cards = row.querySelectorAll('.promo-card');
+      if (cards.length < 2) return;
+      const cardWidth = cards[0].getBoundingClientRect().width;
+      const gap = parseFloat(getComputedStyle(row).gap) || 14;
+      const max = Math.max(0, row.scrollWidth - row.clientWidth);
+      if (max <= 2) return;
+      const next = row.scrollLeft + cardWidth + gap;
+      row.scrollTo({left: next >= max - 2 ? 0 : next, behavior:'smooth'});
+    }, 5000);
+    timers.set(row, timer);
   }
 
-  function setupSections() {
-    if (working) return;
-    const cards = [...grid.querySelectorAll(':scope > .promo-card')];
-    if (!cards.length) return;
+  const formatDescription = () => {
+    const details = document.getElementById('details');
+    if (!details) return;
+    [...details.querySelectorAll('p')].forEach(p => {
+      if (p.dataset.adsBulletDone === '1') return;
+      const text = p.textContent.trim();
+      if (!text || /^(Language:|Price:|Total:|🇪🇹 Local payment)/i.test(text)) return;
+      const parts = text.split(/\n+|\s*[•●▪◦]\s*|\s*;\s*(?=[A-Z0-9])/).map(x => x.replace(/^[-–—]\s*/, '').trim()).filter(Boolean);
+      if (parts.length < 2) return;
+      const ul = document.createElement('ul');
+      ul.className = 'ads-description-list';
+      parts.forEach(item => { const li=document.createElement('li'); li.textContent=item; ul.appendChild(li); });
+      p.replaceWith(ul);
+    });
+  };
 
-    const signature = cards.map(card => card.querySelector('[data-promo-id]')?.dataset.promoId || card.textContent.trim()).join('|');
-    if (signature === lastSignature && grid.querySelector('.promo-section')) return;
-    lastSignature = signature;
-    working = true;
-
-    const paid = cards.filter(card => !/^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
-    const free = cards.filter(card => /^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
-
-    grid.classList.remove('ads-carousel');
-    grid.innerHTML = '';
-
-    const addSection = (title, icon, list, kind) => {
-      if (!list.length) return;
-      const section = document.createElement('section');
-      section.className = `promo-section promo-section-${kind}`;
-      section.innerHTML = `<div class="promo-section-heading"><span>${icon}</span><h3>${title}</h3></div>`;
-      const cardsGrid = document.createElement('div');
-      cardsGrid.className = 'promo-section-grid';
-      list.forEach(card => cardsGrid.appendChild(card));
-      section.appendChild(cardsGrid);
-      grid.appendChild(section);
-      setupAutoScroll(cardsGrid);
-    };
-
-    addSection('Paid Books', '💳', paid, 'paid');
-    addSection('Free Books', '🆓', free, 'free');
-
-    working = false;
-  }
-
-  new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, { childList: true });
-  setTimeout(setupSections, 300);
+  root.addEventListener('click', () => setTimeout(formatDescription, 80), true);
+  new MutationObserver(() => { setTimeout(forceSections, 0); setTimeout(formatDescription, 100); }).observe(root, {childList:true, subtree:true});
+  setTimeout(forceSections, 400);
+  setInterval(forceSections, 2000);
 })();
