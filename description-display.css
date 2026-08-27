@@ -1,0 +1,12 @@
+/* Preserve the author's pasted description structure inside book details only. */
+.detail-description{display:block!important;width:100%!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.75!important;text-align:left!important}
+.detail-description h1,.detail-description h2,.detail-description h3{display:block!important;margin:1.1em 0 .45em!important;line-height:1.25!important}
+.detail-description h1:first-child,.detail-description h2:first-child,.detail-description h3:first-child{margin-top:0!important}
+.detail-description p{display:block!important;margin:.55em 0!important;line-height:1.75!important}
+.detail-description ul{display:block!important;margin:.45em 0 .8em 1.35em!important;padding-left:1.15em!important;list-style:disc!important}
+.detail-description li{display:list-item!important;margin:.45em 0!important;padding-left:.2em!important;line-height:1.7!important}
+.detail-description strong{font-weight:800!important}
+.detail-description em{font-style:italic!important}
+.detail-description h1+ p,.detail-description h2+ p,.detail-description h3+ p{margin-top:.35em!important}
+.detail-description p + ul{margin-top:.2em!important}
+.detail-description ul + p{margin-top:.8em!important}
