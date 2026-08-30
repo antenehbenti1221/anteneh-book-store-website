@@ -68,8 +68,8 @@
     working = false;
   }
 
-  // app.js already loads the published catalogue. Reuse those cards instead of making
-  // a second Supabase request on every customer visit.
+  // app.js already loads the complete published catalogue. Reuse those cards so the
+  // Ads page does not make another Supabase catalogue request.
   new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, {childList:true});
   setupSections();
 })();
