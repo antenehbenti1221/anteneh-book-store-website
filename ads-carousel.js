@@ -21,12 +21,12 @@
       const atEnd = cardsGrid.scrollLeft + cardsGrid.clientWidth >= cardsGrid.scrollWidth - 6;
       cardsGrid.scrollTo({left: atEnd ? 0 : cardsGrid.scrollLeft + amount, behavior:'smooth'});
     };
-    const startAuto = () => { if (timer) clearInterval(timer); timer = setInterval(step, 5000); };
+    const startAuto = () => { if (timer) clearInterval(timer); timer = setInterval(step, 3000); };
     const userMoved = () => {
       if (resumeTimer) clearTimeout(resumeTimer);
       if (timer) clearInterval(timer);
       timer = null;
-      resumeTimer = setTimeout(startAuto, 5000);
+      resumeTimer = setTimeout(startAuto, 3000);
     };
     cardsGrid.addEventListener('wheel', userMoved, {passive:true});
     cardsGrid.addEventListener('touchstart', userMoved, {passive:true});
@@ -60,6 +60,9 @@
       list.forEach(card => cardsGrid.appendChild(card));
       section.appendChild(cardsGrid);
       grid.appendChild(section);
+      // Ads are a presentation area: load all cover thumbnails immediately so the
+      // paid and free rows do not appear empty while the user scrolls horizontally.
+      cardsGrid.querySelectorAll('img').forEach(img => { img.loading = 'eager'; });
       setupAutoScroll(cardsGrid);
     };
     addSection('Paid Books', '💳', paid, 'paid');
