@@ -65,20 +65,19 @@
     };
     addSection('Paid Books', '💳', paid, 'paid');
     addSection('Free Books', '🆓', free, 'free');
-    // Keep the existing Ads-page View buttons in place and delegate only their
-    // book-opening action. This avoids the desktop overlay/layout intercepting clicks.
-    grid.querySelectorAll('[data-promo-id]').forEach(btn => {
-      if (btn.closest('.promo-action')) {
-        btn.addEventListener('click', e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const id = btn.dataset.promoId;
-          if (id && typeof window.openBook === 'function') window.openBook(id);
-        }, {capture:true});
-      }
-    });
     working = false;
   }
+
+  // One delegated handler survives every Ads-page carousel rebuild and directly
+  // invokes the existing book viewer. Nothing else on the page is intercepted.
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest?.('[data-promo-id]');
+    if (!btn || !grid.contains(btn)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const id = btn.dataset.promoId;
+    if (id && typeof window.openBook === 'function') window.openBook(id);
+  }, true);
 
   new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, {childList:true});
   setupSections();
