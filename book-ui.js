@@ -2,20 +2,20 @@
   const style=document.createElement('style');
   style.id='book-ui-exact';
   style.textContent=`
-    /* AVAILABLE BOOKS ONLY: compact title-list rows. Do not show covers/descriptions here. */
-    #grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;align-items:stretch!important}
-    #grid .book{display:block!important;min-width:0!important;width:100%!important;margin:0!important;border:1px solid var(--line)!important;border-left:4px solid var(--green)!important;border-radius:12px!important;background:#fff!important;box-shadow:0 4px 14px #2f1f120c!important;overflow:hidden!important;position:relative!important}
-    #grid .book:nth-child(3n+2){border-left-color:var(--gold)!important}
-    #grid .book:nth-child(3n){border-left-color:var(--red)!important}
+    /* AVAILABLE BOOKS ONLY: clean three-column title cards. No covers, descriptions, bullets, or added emojis. */
+    #grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;align-items:stretch!important}
+    #grid .book{display:block!important;min-width:0!important;width:100%!important;height:100%!important;margin:0!important;border:1px solid var(--line)!important;border-top:4px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important;position:relative!important}
+    #grid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
+    #grid .book:nth-child(3n){border-top-color:var(--red)!important}
     #grid .book .cover,#grid .book .badge,#grid .book .book-preview{display:none!important}
-    #grid .book .body{display:flex!important;align-items:center!important;gap:12px!important;padding:0!important;min-width:0!important;width:100%!important}
-    #grid .book .title{display:block!important;flex:1 1 auto!important;min-width:0!important;margin:0!important;padding:14px 14px!important;cursor:default!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:16px!important;line-height:1.4!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important}
-    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;gap:12px!important;margin:0!important;padding:8px 12px 8px 0!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
-    #grid .book .bottom>b{white-space:nowrap!important;font-size:14px!important}
-    #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;min-width:68px!important;margin:0!important;min-height:38px!important;padding:9px 14px!important;font-size:13px!important}
+    #grid .book .body{display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:space-between!important;gap:0!important;padding:0!important;min-width:0!important;width:100%!important;height:100%!important}
+    #grid .book .title{display:flex!important;align-items:center!important;min-width:0!important;min-height:76px!important;margin:0!important;padding:16px 17px 12px!important;cursor:default!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:16px!important;line-height:1.45!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important;text-decoration:none!important}
+    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;flex:0 0 auto!important;gap:12px!important;margin:0!important;padding:10px 13px 13px!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
+    #grid .book .bottom>b{white-space:nowrap!important;font-size:14px!important;font-weight:700!important}
+    #grid .book .bottom .btn{display:inline-flex!important;align-items:center!important;justify-content:center!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;min-width:72px!important;margin:0!important;min-height:38px!important;padding:9px 14px!important;font-size:13px!important}
     #grid .book.expanded{grid-column:auto!important}
 
-    /* Free Books: keep the existing compact title-list behavior. */
+    /* Free Books: keep existing compact three-column presentation. */
     #freeGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
     #freeGrid .book{min-width:0!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important}
     #freeGrid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
@@ -41,21 +41,17 @@
     #adGrid .promo-action{padding:0 4px 8px!important;position:relative!important;z-index:20!important}
     #adGrid .promo-action .btn{position:relative!important;z-index:21!important;pointer-events:auto!important;cursor:pointer!important}
 
-    @media(max-width:700px){
-      #grid{gap:8px!important}
-      #grid .book .body{gap:6px!important}
-      #grid .book .title{font-size:14px!important;padding:12px 10px!important}
-      #grid .book .bottom{gap:7px!important;padding:6px 8px 6px 0!important}
-      #grid .book .bottom>b{font-size:12px!important}
-      #grid .book .bottom .btn{min-width:58px!important;min-height:36px!important;padding:8px 10px!important;font-size:12px!important}
+    @media(max-width:900px){
+      #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+      #grid .book .title{font-size:15px!important;padding:14px!important}
     }
     @media(max-width:520px){
-      #grid .book{border-radius:10px!important}
-      #grid .book .body{align-items:stretch!important}
-      #grid .book .title{font-size:13px!important;padding:11px 9px!important}
-      #grid .book .bottom{flex-direction:column!important;justify-content:center!important;gap:4px!important;padding:6px 7px!important}
-      #grid .book .bottom>b{font-size:11px!important}
-      #grid .book .bottom .btn{min-width:56px!important;min-height:34px!important;padding:7px 9px!important;font-size:11px!important}
+      #grid{grid-template-columns:1fr!important;gap:9px!important}
+      #grid .book{border-radius:12px!important}
+      #grid .book .title{font-size:14px!important;min-height:60px!important;padding:12px 11px!important}
+      #grid .book .bottom{gap:8px!important;padding:7px 9px 9px!important}
+      #grid .book .bottom>b{font-size:12px!important}
+      #grid .book .bottom .btn{min-width:62px!important;min-height:36px!important;padding:8px 11px!important;font-size:12px!important}
       #freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
       #freeGrid .book{border-radius:14px!important}
       #freeGrid .book .title{font-size:14px!important;padding:11px 10px!important;min-height:52px!important}
