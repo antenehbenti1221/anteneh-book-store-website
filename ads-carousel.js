@@ -60,19 +60,26 @@
       list.forEach(card => cardsGrid.appendChild(card));
       section.appendChild(cardsGrid);
       grid.appendChild(section);
-      // Ads are a presentation area: load all cover thumbnails immediately so the
-      // paid and free rows do not appear empty while the user scrolls horizontally.
       cardsGrid.querySelectorAll('img').forEach(img => { img.loading = 'eager'; });
       setupAutoScroll(cardsGrid);
     };
     addSection('Paid Books', '💳', paid, 'paid');
     addSection('Free Books', '🆓', free, 'free');
-    grid.querySelectorAll('[data-promo-id]').forEach(btn => btn.onclick = () => window.openBook?.(btn.dataset.promoId));
+    // Keep the existing Ads-page View buttons in place and delegate only their
+    // book-opening action. This avoids the desktop overlay/layout intercepting clicks.
+    grid.querySelectorAll('[data-promo-id]').forEach(btn => {
+      if (btn.closest('.promo-action')) {
+        btn.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const id = btn.dataset.promoId;
+          if (id && typeof window.openBook === 'function') window.openBook(id);
+        }, {capture:true});
+      }
+    });
     working = false;
   }
 
-  // app.js already loads the complete published catalogue. Reuse those cards so the
-  // Ads page does not make another Supabase catalogue request.
   new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, {childList:true});
   setupSections();
 })();
