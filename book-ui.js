@@ -2,27 +2,26 @@
   const style=document.createElement('style');
   style.id='book-ui-exact';
   style.textContent=`
-    /* Available Books only: clean independent cards. */
-    #grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important;align-items:start!important}
-    #grid .book{display:block!important;min-width:0!important;width:100%!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:20px!important;background:#fff!important;box-shadow:0 8px 28px #2f1f120d!important;overflow:hidden!important;position:relative!important}
+    /* Available Books: restore the compact title-list layout only. */
+    #grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
+    #grid .book{display:block!important;min-width:0!important;width:100%!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important;position:relative!important}
     #grid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
     #grid .book:nth-child(3n){border-top-color:var(--red)!important}
-    #grid .book .cover{display:grid!important;width:100%!important;height:250px!important;margin:0!important;overflow:hidden!important;position:relative!important;background:linear-gradient(145deg,#168a4b,#f0c419,#c83c32)!important}
-    #grid .book .cover img{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important}
-    #grid .book .body{display:block!important;padding:20px!important;min-width:0!important}
-    #grid .book .badge{display:block!important;margin:0!important;font-size:11px!important;line-height:1.3!important}
-    #grid .book .title{display:block!important;margin:8px 0!important;padding:0!important;min-height:0!important;cursor:pointer!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:20px!important;line-height:1.35!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important}
-    #grid .book .title:hover{background:none!important}
-    #grid .book .book-preview{display:block!important;width:100%!important;box-sizing:border-box!important;padding:0!important;margin:0!important;min-width:0!important;overflow:visible!important}
+    #grid .book .cover{display:none!important}
+    #grid .book .body{display:block!important;padding:0!important;min-width:0!important}
+    #grid .book .badge{display:none!important}
+    #grid .book .title{display:flex!important;align-items:center!important;min-height:58px!important;margin:0!important;padding:13px 14px!important;cursor:pointer!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:16px!important;line-height:1.35!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important}
+    #grid .book .title:hover{background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c3210)!important}
+    #grid .book .book-preview{display:block!important;width:100%!important;box-sizing:border-box!important;padding:0 14px 12px!important;margin:0!important;min-width:0!important;overflow:visible!important}
     #grid .book .book-preview[hidden]{display:none!important}
-    #grid .book .book-preview .desc{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;margin:12px 0 10px!important;padding:0!important;color:var(--muted)!important;font-size:14px!important;line-height:1.65!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:normal!important;text-align:left!important}
+    #grid .book .book-preview .desc{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0 0 10px!important;padding:0!important;color:var(--muted)!important;font-size:14px!important;line-height:1.65!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:normal!important;text-align:left!important}
     #grid .book .book-language{display:block!important;margin:8px 0!important;font-size:13px!important;line-height:1.5!important}
-    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin-top:18px!important;padding:0!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
-    #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;margin:0!important}
+    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0!important;padding:0 14px 13px!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
+    #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;margin:0!important;min-height:38px!important;padding:9px 14px!important;font-size:13px!important}
     #grid .book.expanded{grid-column:1/-1!important}
-    #grid .book.expanded .title{border-bottom:1px solid var(--line)!important;padding-bottom:10px!important}
+    #grid .book.expanded .title{border-bottom:1px solid var(--line)!important}
 
-    /* Free Books: preserve its existing compact behavior. */
+    /* Free Books: preserve its existing compact title-list behavior. */
     #freeGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
     #freeGrid .book{min-width:0!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important}
     #freeGrid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
@@ -49,22 +48,18 @@
     #adGrid .promo-action .btn{position:relative!important;z-index:21!important;pointer-events:auto!important;cursor:pointer!important}
 
     @media(max-width:900px){
-      #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
-      #grid .book .cover{height:230px!important}
-      #grid .book .body{padding:16px!important}
-      #grid .book .title{font-size:17px!important}
+      #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+      #grid .book .title{font-size:15px!important;padding:12px!important;min-height:54px!important}
+      #grid .book .bottom{padding:0 12px 12px!important}
       #freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
       #freeGrid .book .title{font-size:15px!important;padding:12px!important;min-height:54px!important}
     }
     @media(max-width:520px){
       #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
       #grid .book{border-radius:14px!important}
-      #grid .book .cover{height:210px!important}
-      #grid .book .body{padding:12px!important}
-      #grid .book .title{font-size:15px!important}
-      #grid .book .book-preview .desc{font-size:13px!important}
-      #grid .book .bottom{align-items:stretch!important;flex-direction:column!important}
-      #grid .book .bottom .btn{width:100%!important}
+      #grid .book .title{font-size:14px!important;padding:11px 10px!important;min-height:52px!important}
+      #grid .book .bottom{padding:0 10px 10px!important}
+      #grid .book .bottom .btn{min-height:36px!important;padding:8px 11px!important;font-size:12px!important}
       #freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
       #freeGrid .book{border-radius:14px!important}
       #freeGrid .book .title{font-size:14px!important;padding:11px 10px!important;min-height:52px!important}
