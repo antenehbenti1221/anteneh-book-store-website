@@ -37,39 +37,56 @@
     startAuto();
   }
 
+  function directCards() {
+    return Array.from(grid.children).filter(el => el.classList?.contains('promo-card'));
+  }
+
   function setupSections() {
     if (working) return;
-    const cards = [...grid.querySelectorAll(':scope > .promo-card')];
+    const cards = directCards();
     if (!cards.length) return;
     const signature = cards.map(card => card.querySelector('[data-promo-id]')?.dataset.promoId || card.textContent.trim()).join('|');
     if (signature === lastSignature && grid.querySelector('.promo-section')) return;
     lastSignature = signature;
     working = true;
-    const paid = cards.filter(card => !/^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
-    const free = cards.filter(card => /^FREE$/i.test(card.querySelector('.promo-overlay span')?.textContent.trim() || ''));
+
+    const paid = cards.filter(card => {
+      const value = card.querySelector('.promo-overlay span')?.textContent.trim() || '';
+      return !/^FREE$/i.test(value);
+    });
+    const free = cards.filter(card => {
+      const value = card.querySelector('.promo-overlay span')?.textContent.trim() || '';
+      return /^FREE$/i.test(value);
+    });
+
     grid.classList.remove('ads-carousel');
     grid.innerHTML = '';
+
     const addSection = (title, icon, list, kind) => {
       if (!list.length) return;
       const section = document.createElement('section');
       section.className = `promo-section promo-section-${kind}`;
-      section.innerHTML = `<div class="promo-section-heading"><span>${icon}</span><h3>${title}</h3></div>`;
+      const heading = document.createElement('div');
+      heading.className = 'promo-section-heading';
+      heading.innerHTML = `<span>${icon}</span><h3>${title}</h3>`;
       const cardsGrid = document.createElement('div');
       cardsGrid.className = 'promo-section-grid';
       cardsGrid.setAttribute('aria-label', `${title} carousel`);
       list.forEach(card => cardsGrid.appendChild(card));
+      section.appendChild(heading);
       section.appendChild(cardsGrid);
       grid.appendChild(section);
       cardsGrid.querySelectorAll('img').forEach(img => { img.loading = 'eager'; });
       setupAutoScroll(cardsGrid);
     };
+
     addSection('Paid Books', '💳', paid, 'paid');
     addSection('Free Books', '🆓', free, 'free');
     working = false;
   }
 
-  // One delegated handler survives every Ads-page carousel rebuild and directly
-  // invokes the existing book viewer. Nothing else on the page is intercepted.
+  // Keep the existing promotion cards intact and make the transformation
+  // compatible with desktop browsers that do not reliably support :scope.
   grid.addEventListener('click', e => {
     const btn = e.target.closest?.('[data-promo-id]');
     if (!btn || !grid.contains(btn)) return;
@@ -79,6 +96,7 @@
     if (id && typeof window.openBook === 'function') window.openBook(id);
   }, true);
 
-  new MutationObserver(() => setTimeout(setupSections, 0)).observe(grid, {childList:true});
+  const observer = new MutationObserver(() => setTimeout(setupSections, 0));
+  observer.observe(grid, {childList:true, subtree:true});
   setupSections();
 })();
