@@ -73,7 +73,6 @@
       old.style.display='inline-flex';
       old.classList.add('book-view-button');
       old.type='button';
-      old.onclick=old.onclick;
       preview.appendChild(old);
     }
   }
@@ -108,17 +107,15 @@
   observer.observe(document.body,{childList:true,subtree:true});
   enhance();
 
-  /* Safety handler: keeps the paid View action working even after the button is moved by this UI layer. */
+  /* Safety handler: reliably forwards the real button click after this UI layer moves it. */
   document.addEventListener('click',function(e){
     const button=e.target.closest?.('[data-card-view]');
     if(!button)return;
     if(button.dataset.viewHandled==='1')return;
-    const id=button.dataset.id;
-    if(!id||typeof window.openBook!=='function')return;
     e.preventDefault();
     e.stopPropagation();
     button.dataset.viewHandled='1';
-    window.openBook(id);
+    button.click();
     setTimeout(()=>{button.dataset.viewHandled='0'},0);
   },true);
 })();
