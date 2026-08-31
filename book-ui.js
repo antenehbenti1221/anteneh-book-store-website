@@ -2,26 +2,20 @@
   const style=document.createElement('style');
   style.id='book-ui-exact';
   style.textContent=`
-    /* Available Books: restore the compact title-list layout only. */
-    #grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
-    #grid .book{display:block!important;min-width:0!important;width:100%!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important;position:relative!important}
-    #grid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
-    #grid .book:nth-child(3n){border-top-color:var(--red)!important}
-    #grid .book .cover{display:none!important}
-    #grid .book .body{display:block!important;padding:0!important;min-width:0!important}
-    #grid .book .badge{display:none!important}
-    #grid .book .title{display:flex!important;align-items:center!important;min-height:58px!important;margin:0!important;padding:13px 14px!important;cursor:pointer!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:16px!important;line-height:1.35!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important}
-    #grid .book .title:hover{background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c3210)!important}
-    #grid .book .book-preview{display:block!important;width:100%!important;box-sizing:border-box!important;padding:0 14px 12px!important;margin:0!important;min-width:0!important;overflow:visible!important}
-    #grid .book .book-preview[hidden]{display:none!important}
-    #grid .book .book-preview .desc{display:block!important;width:100%!important;min-width:0!important;min-height:0!important;margin:0 0 10px!important;padding:0!important;color:var(--muted)!important;font-size:14px!important;line-height:1.65!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;word-break:normal!important;text-align:left!important}
-    #grid .book .book-language{display:block!important;margin:8px 0!important;font-size:13px!important;line-height:1.5!important}
-    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0!important;padding:0 14px 13px!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
-    #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;margin:0!important;min-height:38px!important;padding:9px 14px!important;font-size:13px!important}
-    #grid .book.expanded{grid-column:1/-1!important}
-    #grid .book.expanded .title{border-bottom:1px solid var(--line)!important}
+    /* AVAILABLE BOOKS ONLY: compact title-list rows. Do not show covers/descriptions here. */
+    #grid{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;align-items:stretch!important}
+    #grid .book{display:block!important;min-width:0!important;width:100%!important;margin:0!important;border:1px solid var(--line)!important;border-left:4px solid var(--green)!important;border-radius:12px!important;background:#fff!important;box-shadow:0 4px 14px #2f1f120c!important;overflow:hidden!important;position:relative!important}
+    #grid .book:nth-child(3n+2){border-left-color:var(--gold)!important}
+    #grid .book:nth-child(3n){border-left-color:var(--red)!important}
+    #grid .book .cover,#grid .book .badge,#grid .book .book-preview{display:none!important}
+    #grid .book .body{display:flex!important;align-items:center!important;gap:12px!important;padding:0!important;min-width:0!important;width:100%!important}
+    #grid .book .title{display:block!important;flex:1 1 auto!important;min-width:0!important;margin:0!important;padding:14px 14px!important;cursor:default!important;font-family:"Noto Sans Ethiopic",sans-serif!important;font-size:16px!important;line-height:1.4!important;font-weight:700!important;overflow-wrap:anywhere!important;word-break:normal!important}
+    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:flex-end!important;flex:0 0 auto!important;gap:12px!important;margin:0!important;padding:8px 12px 8px 0!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
+    #grid .book .bottom>b{white-space:nowrap!important;font-size:14px!important}
+    #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important;width:auto!important;min-width:68px!important;margin:0!important;min-height:38px!important;padding:9px 14px!important;font-size:13px!important}
+    #grid .book.expanded{grid-column:auto!important}
 
-    /* Free Books: preserve its existing compact title-list behavior. */
+    /* Free Books: keep the existing compact title-list behavior. */
     #freeGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
     #freeGrid .book{min-width:0!important;margin:0!important;border:1px solid var(--line)!important;border-top:3px solid var(--green)!important;border-radius:16px!important;background:#fff!important;box-shadow:0 6px 18px #2f1f120c!important;overflow:hidden!important}
     #freeGrid .book:nth-child(3n+2){border-top-color:var(--gold)!important}
@@ -47,19 +41,21 @@
     #adGrid .promo-action{padding:0 4px 8px!important;position:relative!important;z-index:20!important}
     #adGrid .promo-action .btn{position:relative!important;z-index:21!important;pointer-events:auto!important;cursor:pointer!important}
 
-    @media(max-width:900px){
-      #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
-      #grid .book .title{font-size:15px!important;padding:12px!important;min-height:54px!important}
-      #grid .book .bottom{padding:0 12px 12px!important}
-      #freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
-      #freeGrid .book .title{font-size:15px!important;padding:12px!important;min-height:54px!important}
+    @media(max-width:700px){
+      #grid{gap:8px!important}
+      #grid .book .body{gap:6px!important}
+      #grid .book .title{font-size:14px!important;padding:12px 10px!important}
+      #grid .book .bottom{gap:7px!important;padding:6px 8px 6px 0!important}
+      #grid .book .bottom>b{font-size:12px!important}
+      #grid .book .bottom .btn{min-width:58px!important;min-height:36px!important;padding:8px 10px!important;font-size:12px!important}
     }
     @media(max-width:520px){
-      #grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-      #grid .book{border-radius:14px!important}
-      #grid .book .title{font-size:14px!important;padding:11px 10px!important;min-height:52px!important}
-      #grid .book .bottom{padding:0 10px 10px!important}
-      #grid .book .bottom .btn{min-height:36px!important;padding:8px 11px!important;font-size:12px!important}
+      #grid .book{border-radius:10px!important}
+      #grid .book .body{align-items:stretch!important}
+      #grid .book .title{font-size:13px!important;padding:11px 9px!important}
+      #grid .book .bottom{flex-direction:column!important;justify-content:center!important;gap:4px!important;padding:6px 7px!important}
+      #grid .book .bottom>b{font-size:11px!important}
+      #grid .book .bottom .btn{min-width:56px!important;min-height:34px!important;padding:7px 9px!important;font-size:11px!important}
       #freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
       #freeGrid .book{border-radius:14px!important}
       #freeGrid .book .title{font-size:14px!important;padding:11px 10px!important;min-height:52px!important}
@@ -70,7 +66,7 @@
   document.head.appendChild(style);
 
   function collapse(scope,except){scope.querySelectorAll('.book.expanded').forEach(other=>{if(other!==except){other.classList.remove('expanded');const p=other.querySelector('.book-preview');if(p)p.hidden=true;}})}
-  function wireTitle(card,preview,scope){
+  function wireFreeTitle(card,preview,scope){
     const title=card.querySelector('.title');if(!title||!preview)return;
     const toggle=()=>{const opening=!card.classList.contains('expanded');collapse(scope,card);card.classList.toggle('expanded',opening);preview.hidden=!opening;};
     title.setAttribute('role','button');title.setAttribute('tabindex','0');
@@ -78,10 +74,8 @@
     title.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}};
   }
   function moveFreeAction(card,preview){const old=card.querySelector('[data-card-view]');if(old&&!old.dataset.freeActionMoved){old.dataset.freeActionMoved='1';old.style.display='inline-flex';old.classList.add('book-view-button');old.type='button';preview.appendChild(old);}}
-  function enhanceGrid(){const scope=document.querySelector('#grid');if(!scope)return;scope.querySelectorAll('.book').forEach(card=>{const preview=card.querySelector('.book-preview');if(!preview||card.dataset.uiReady)return;card.dataset.uiReady='1';wireTitle(card,preview,scope);});}
-  function enhanceFree(){const scope=document.querySelector('#freeGrid');if(!scope)return;scope.querySelectorAll('.book').forEach(card=>{const preview=card.querySelector('.book-preview');if(!preview||card.dataset.freeUiReady)return;card.dataset.freeUiReady='1';preview.hidden=true;moveFreeAction(card,preview);wireTitle(card,preview,scope);});}
-  function enhance(){enhanceGrid();enhanceFree()}
-  const observer=new MutationObserver(enhance);observer.observe(document.body,{childList:true,subtree:true});enhance();
+  function enhanceFree(){const scope=document.querySelector('#freeGrid');if(!scope)return;scope.querySelectorAll('.book').forEach(card=>{const preview=card.querySelector('.book-preview');if(!preview||card.dataset.freeUiReady)return;card.dataset.freeUiReady='1';preview.hidden=true;moveFreeAction(card,preview);wireFreeTitle(card,preview,scope);});}
+  const observer=new MutationObserver(enhanceFree);observer.observe(document.body,{childList:true,subtree:true});enhanceFree();
 
   /* Paid-book View safety fix: desktop/laptop-safe delegated handler. */
   let paidPointerHandled=false;
