@@ -9,12 +9,12 @@
     #grid .book .cover,#freeGrid .book .cover{display:none!important}
     #grid .book .body,#freeGrid .book .body{padding:0!important}
     #grid .book .badge,#freeGrid .book .badge{display:none!important}
-    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:0 14px 14px!important;position:relative!important;z-index:40!important}
+    #grid .book .bottom{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;padding:0 14px 14px!important;position:relative!important;z-index:40!important;pointer-events:auto!important}
     #grid .book .bottom .btn{display:inline-flex!important;position:relative!important;z-index:50!important;pointer-events:auto!important;cursor:pointer!important;touch-action:manipulation!important}
     #grid .book .title,#freeGrid .book .title{margin:0!important;padding:13px 14px!important;min-height:58px!important;display:flex!important;align-items:center!important;cursor:pointer!important;font-size:16px!important;line-height:1.3!important;font-weight:700!important;overflow-wrap:anywhere!important}
-    #grid .book .title:hover,#freeGrid .book .title:hover{background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c320b)!important}
+    #grid .book .title:hover,#freeGrid .book .title:hover{background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c3210)!important}
     #grid .book.expanded,#freeGrid .book.expanded{grid-column:1/-1!important}
-    #grid .book.expanded .title,#freeGrid .book.expanded .title{border-bottom:1px solid var(--line)!important;background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c320b)!important}
+    #grid .book.expanded .title,#freeGrid .book.expanded .title{border-bottom:1px solid var(--line)!important;background:linear-gradient(90deg,#168a4b0b,#f0c4190b,#c83c3210b)!important}
     #grid .book .book-preview,#freeGrid .book .book-preview{padding:14px!important}
     #grid .book .book-preview[hidden],#freeGrid .book .book-preview[hidden]{display:none!important}
     #grid .book .book-preview .desc,#freeGrid .book .book-preview .desc{min-height:0!important;margin:0 0 10px!important}
@@ -46,12 +46,23 @@
   function enhance(){enhanceGrid();enhanceFree()}
   const observer=new MutationObserver(enhance);observer.observe(document.body,{childList:true,subtree:true});enhance();
 
-  /* Paid-book View safety fix: handle the real button directly in the capture phase.
-     This bypasses any desktop overlay/event interference without changing checkout logic. */
+  /* Paid-book View safety fix: handle both pointer and click capture so laptop/desktop
+     browsers cannot lose the action to card/title handlers. */
+  let paidPointerHandled=false;
+  document.addEventListener('pointerdown',function(e){
+    const button=e.target.closest?.('#grid [data-card-view]');
+    if(!button)return;
+    paidPointerHandled=true;
+    e.preventDefault();e.stopPropagation();
+    const id=button.getAttribute('data-id');
+    if(id && typeof window.openBook==='function') window.openBook(id);
+    setTimeout(()=>{paidPointerHandled=false},350);
+  },true);
   document.addEventListener('click',function(e){
     const button=e.target.closest?.('#grid [data-card-view]');
     if(!button)return;
     e.preventDefault();e.stopImmediatePropagation();
+    if(paidPointerHandled)return;
     const id=button.getAttribute('data-id');
     if(id && typeof window.openBook==='function') window.openBook(id);
   },true);
