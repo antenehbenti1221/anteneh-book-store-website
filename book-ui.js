@@ -17,14 +17,15 @@
     #grid .book .book-preview,#freeGrid .book .book-preview{padding:14px!important}
     #grid .book .book-preview[hidden],#freeGrid .book .book-preview[hidden]{display:none!important}
     #grid .book .book-preview .desc,#freeGrid .book .book-preview .desc{min-height:0!important;margin:0 0 10px!important}
-    #grid .book .book-preview .book-view-button,#freeGrid .book .book-preview .book-view-button{display:inline-flex!important;width:auto!important;min-width:120px!important}
+    #grid .book .book-preview .book-view-button,#freeGrid .book .book-preview .book-view-button{display:inline-flex!important;width:auto!important;min-width:120px!important;position:relative!important;z-index:20!important;pointer-events:auto!important;cursor:pointer!important}
     #freeGrid .book .free-access-result{margin-top:12px!important}
     #freeGrid .book .free-access-result[hidden]{display:none!important}
 
     #adGrid .promo-image{display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;background:transparent!important;padding:0!important;border-radius:12px!important}
     #adGrid .promo-image img{display:block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;margin:auto!important;border-radius:0!important;box-shadow:none!important}
     #adGrid .promo-overlay{display:none!important;visibility:hidden!important}
-    #adGrid .promo-action{padding:0 4px 8px}
+    #adGrid .promo-action{padding:0 4px 8px;position:relative!important;z-index:20!important}
+    #adGrid .promo-action .btn{position:relative!important;z-index:21!important;pointer-events:auto!important;cursor:pointer!important}
 
     @media(max-width:900px){
       #grid,#freeGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
@@ -71,6 +72,8 @@
       old.dataset.freeActionMoved='1';
       old.style.display='inline-flex';
       old.classList.add('book-view-button');
+      old.type='button';
+      old.onclick=old.onclick;
       preview.appendChild(old);
     }
   }
@@ -104,4 +107,18 @@
   const observer=new MutationObserver(enhance);
   observer.observe(document.body,{childList:true,subtree:true});
   enhance();
+
+  /* Safety handler: keeps the paid View action working even after the button is moved by this UI layer. */
+  document.addEventListener('click',function(e){
+    const button=e.target.closest?.('[data-card-view]');
+    if(!button)return;
+    if(button.dataset.viewHandled==='1')return;
+    const id=button.dataset.id;
+    if(!id||typeof window.openBook!=='function')return;
+    e.preventDefault();
+    e.stopPropagation();
+    button.dataset.viewHandled='1';
+    window.openBook(id);
+    setTimeout(()=>{button.dataset.viewHandled='0'},0);
+  },true);
 })();
