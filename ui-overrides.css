@@ -8,3 +8,8 @@
 #free #freeGrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;width:100%!important;align-items:start!important}
 #free #freeGrid>.book{min-width:0!important;width:auto!important}
 @media(min-width:901px){#books #grid,#free #freeGrid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:20px!important}}
+/* Keep paid-book View controls anchored inside each card; affects no other section. */
+#books #grid>.book .bottom{display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;margin-top:14px!important}
+#books #grid>.book .bottom>b{flex:0 0 auto!important}
+#books #grid>.book .bottom .btn{width:auto!important;min-width:64px!important;margin:0!important;flex:0 0 auto!important;white-space:nowrap!important}
+@media(max-width:520px){#books #grid>.book .bottom{flex-direction:row!important;align-items:center!important;gap:6px!important}#books #grid>.book .bottom .btn{width:auto!important;min-width:56px!important;padding:7px 9px!important;font-size:12px!important}}
