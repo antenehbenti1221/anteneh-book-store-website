@@ -1,11 +1,15 @@
-/* View modal only: natural image and description flow. */
-.detail-description{display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;white-space:pre-wrap!important;overflow-wrap:normal!important;word-break:normal!important;overflow-x:auto!important;line-height:1.7!important;text-align:left!important;margin:12px 0!important}
-.detail-description *{box-sizing:border-box!important;max-width:100%!important}
-.detail-description p{display:block!important;margin:.65em 0!important;line-height:1.7!important}
-.detail-description h1,.detail-description h2,.detail-description h3{display:block!important;margin:1em 0 .5em!important;line-height:1.25!important}
-.detail-description ul,.detail-description ol{display:block!important;margin:.6em 0 .9em 1.4em!important;padding-left:1.2em!important}
-.detail-description li{display:list-item!important;margin:.3em 0!important;line-height:1.65!important}
-.detail-description strong{font-weight:800!important}.detail-description em{font-style:italic!important}
-.detail-cover{width:100%!important;height:auto!important;min-height:0!important;display:block!important;overflow:hidden!important;text-align:center!important;background:transparent!important}
-.detail-cover img{display:inline-block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:none!important;object-fit:contain!important;object-position:center!important;margin:0 auto!important;vertical-align:middle!important}
-@media(max-width:520px){.detail-description{font-size:14px!important;line-height:1.65!important}.detail-cover img{max-width:100%!important;height:auto!important}}
+/* View modal only: keep the catalogue behind the modal from visually showing through. */
+#modal{z-index:100!important;isolation:isolate!important}
+#modal .backdrop{position:absolute!important;inset:0!important;background:rgba(0,0,0,.96)!important;z-index:0!important}
+#modal .modal-card{position:relative!important;z-index:1!important;max-width:620px!important;width:min(620px,92%)!important;max-height:88vh!important;overflow:auto!important}
+#modal #details{position:relative!important;z-index:1!important}
+#modal .detail-description{display:block!important;width:100%!important;max-width:100%!important;box-sizing:border-box!important;white-space:pre-wrap!important;overflow-wrap:normal!important;word-break:normal!important;overflow-x:auto!important;line-height:1.7!important;text-align:left!important;margin:12px 0!important}
+#modal .detail-description *{box-sizing:border-box!important;max-width:100%!important}
+#modal .detail-description p{display:block!important;margin:.65em 0!important;line-height:1.7!important}
+#modal .detail-description h1,#modal .detail-description h2,#modal .detail-description h3{display:block!important;margin:1em 0 .5em!important;line-height:1.25!important}
+#modal .detail-description ul,#modal .detail-description ol{display:block!important;margin:.6em 0 .9em 1.4em!important;padding-left:1.2em!important}
+#modal .detail-description li{display:list-item!important;margin:.3em 0!important;line-height:1.65!important}
+#modal .detail-description strong{font-weight:800!important}#modal .detail-description em{font-style:italic!important}
+#modal .detail-cover{width:100%!important;height:auto!important;min-height:0!important;display:block!important;overflow:hidden!important;text-align:center!important;background:transparent!important}
+#modal .detail-cover img{display:inline-block!important;width:auto!important;height:auto!important;max-width:100%!important;max-height:65vh!important;object-fit:contain!important;object-position:center!important;margin:0 auto!important;vertical-align:middle!important}
+@media(max-width:520px){#modal .detail-description{font-size:14px!important;line-height:1.65!important}#modal .detail-cover img{max-width:100%!important;max-height:48vh!important}}
