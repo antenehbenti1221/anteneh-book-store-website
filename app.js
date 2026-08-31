@@ -1,7 +1,8 @@
 const C=window.STORE_CONFIG||{},grid=document.querySelector('#grid'),freeGrid=document.querySelector('#freeGrid'),adGrid=document.querySelector('#adGrid'),status=document.querySelector('#status'),search=document.querySelector('#search'),filter=document.querySelector('#filter'),modal=document.querySelector('#modal'),details=document.querySelector('#details');let books=[],client,orderPoll;
 const esc=s=>String(s??'').replace(/[&<>\"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&#039;',"'":'&#039;'}[x]));
-// Preserve the description exactly as entered: keep every character and line break, with no invented or removed formatting.
-const md=s=>{const text=String(s??'').replace(/\r\n?/g,'\n');return text?esc(text).replace(/\n/g,'<br>'):'<p>No description available.</p>'};
+// Preserve pasted descriptions as plain text: normalize only browser line endings,
+// escape HTML safely, and let CSS preserve every original newline/space/bullet.
+const md=s=>{const text=String(s??'').replace(/\r\n?/g,'\n');return text?esc(text):'No description available.'};
 const price=b=>b.is_free||Number(b.price)===0?'FREE':`${Number(b.price).toLocaleString()} ${esc(b.currency||'ETB')}`;
 function copyText(v){if(navigator.clipboard)navigator.clipboard.writeText(v).then(()=>alert('Copied'));}
 function paymentCards(){return `<div class="payment-grid"><div class="pay-card"><strong>🏦 CBE Bank</strong><span>1000034618821</span><small>Anteneh Benti Negawo</small><button class="btn" onclick="copyText('1000034618821')">Copy account</button></div><div class="pay-card"><strong>📱 CBE Birr</strong><span>0926198917</span><small>Anteneh Benti Negawo</small><button class="btn" onclick="copyText('0926198917')">Copy number</button></div><div class="pay-card"><strong>📱 Telebirr</strong><span>0926198917</span><small>Anteneh Benti Negawo</small><button class="btn" onclick="copyText('0926198917')">Copy number</button></div></div><p class="small-note">🇪🇹 You may pay from <b>any bank</b>. Upload one clear payment receipt screenshot.</p>`}
