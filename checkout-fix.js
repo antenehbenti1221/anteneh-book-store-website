@@ -6,9 +6,15 @@
     if(!modal||!details||!b)return;
     const session=window.STORE_AUTH?.session;
     if(!session){
-      details.innerHTML='<div class="order-card"><p class="eyebrow">SIGN IN REQUIRED</p><h2>Please sign in first.</h2><p>You need to be signed in before creating an order.</p><button class="btn primary" id="checkoutSignIn">Sign in</button></div>';
+      details.innerHTML='<div class="order-card"><p class="eyebrow">SIGN IN REQUIRED</p><h2>Please sign in first.</h2><p>You need to be signed in before creating an order.</p><button class="btn primary" id="checkoutSignIn" type="button">Sign in</button></div>';
       modal.classList.add('open');
-      document.querySelector('#checkoutSignIn')?.addEventListener('click',()=>document.querySelector('#authBtn')?.click());
+      document.querySelector('#checkoutSignIn')?.addEventListener('click',(e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        modal.classList.remove('open');
+        if(typeof window.openStoreAuth==='function') window.openStoreAuth('signin');
+        else document.querySelector('#authBtn')?.click();
+      });
       return;
     }
     const meta=session.user?.user_metadata||{};
